@@ -15,8 +15,6 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.steve.powerhud.HudConstants.*;
-
 public class HudRenderer implements HudRenderCallback {
     private static final Identifier[] FONTS = {
         null,
@@ -102,7 +100,7 @@ public class HudRenderer implements HudRenderCallback {
     public void renderMainHud(DrawContext dc, MinecraftClient client) {
         TextRenderer ren = client.textRenderer;
         int theme = PowerHudConfig.COLORS[PowerHudConfig.themeIndex];
-        float s = PowerHudConfig.hudScaleVert / SCALE_DIVISOR;
+        float s = PowerHudConfig.hudScaleVert / 100f;
         
         List<Renderable> lCol = new ArrayList<>();
         List<Renderable> cCol = new ArrayList<>();
@@ -110,19 +108,19 @@ public class HudRenderer implements HudRenderCallback {
         
         // Build columns from layout entries
         for (PowerHudConfig.LayoutEntry entry : PowerHudConfig.hudOrder) {
-            if (entry.id.equals(TEXT_SPACE)) {
+            if (entry.id.equals("SPACE")) {
                 Renderable r = new Renderable(
                     null,
                     null,
                     0,
-                    TEXT_SPACE,
+                    "SPACE",
                     entry.alignment,
                     entry.spacerHeight,
                     true
                 );
                 
-                if (entry.alignment == ALIGN_LEFT) lCol.add(r);
-                else if (entry.alignment == ALIGN_CENTER) cCol.add(r);
+                if (entry.alignment == 0) lCol.add(r);
+                else if (entry.alignment == 1) cCol.add(r);
                 else rCol.add(r);
                 continue;
             }
@@ -133,7 +131,7 @@ public class HudRenderer implements HudRenderCallback {
             HudLineRaw line = getRaw(entry.id, theme);
             if (line == null && !force) continue;
             if (line == null) {
-                line = new HudLineRaw(entry.id, TEXT_PREVIEW, theme);
+                line = new HudLineRaw(entry.id, "PREVIEW", theme);
             }
             
             Renderable r = new Renderable(
@@ -146,19 +144,19 @@ public class HudRenderer implements HudRenderCallback {
                 false
             );
             
-            if (entry.alignment == ALIGN_LEFT) lCol.add(r);
-            else if (entry.alignment == ALIGN_CENTER) cCol.add(r);
+            if (entry.alignment == 0) lCol.add(r);
+            else if (entry.alignment == 1) cCol.add(r);
             else rCol.add(r);
         }
         
         // Render all columns
         dc.getMatrices().push();
-        dc.getMatrices().scale(s, s, MATRIX_SCALE_Z);
+        dc.getMatrices().scale(s, s, 1.0f);
         int sw = (int)(client.getWindow().getScaledWidth() / s);
         
-        renderCol(dc, ren, lCol, sw, theme, s, ALIGN_LEFT);
-        renderCol(dc, ren, cCol, sw, theme, s, ALIGN_CENTER);
-        renderCol(dc, ren, rCol, sw, theme, s, ALIGN_RIGHT);
+        renderCol(dc, ren, lCol, sw, theme, s, 0);
+        renderCol(dc, ren, cCol, sw, theme, s, 1);
+        renderCol(dc, ren, rCol, sw, theme, s, 2);
         
         dc.getMatrices().pop();
     }
@@ -173,7 +171,7 @@ public class HudRenderer implements HudRenderCallback {
         int align
     ) {
         int spacing = PowerHudConfig.lineSpacing;
-        int currentY = SPACING_HUD_TOP;
+        int currentY = 5;
         int hAdj = (PowerHudConfig.fontIndex > 0) ? 1 : 0;
         int tColor = PowerHudConfig.COLORS[PowerHudConfig.titleColorIndex];
         long now = System.currentTimeMillis();
@@ -187,51 +185,47 @@ public class HudRenderer implements HudRenderCallback {
             
             // Special handling for inventory grid mode
             if (item.id.equals("INV") && PowerHudConfig.inventoryMode == PowerHudConfig.InventoryMode.GRID) {
-                int modX = (align == ALIGN_LEFT) ? SPACING_HUD_TOP 
-                    : (align == ALIGN_CENTER ? (sw/2 - INV_GRID_WIDTH/2) 
-                    : sw - INV_GRID_WIDTH - SPACING_HUD_TOP);
+                int modX = (align == 0) ? 5 : (align == 1 ? (sw/2 - 31) : sw - 67);
                 
-                renderModularBackground(dc, modX, currentY, INV_GRID_WIDTH, INV_GRID_HEIGHT, theme, item.id);
+                renderModularBackground(dc, modX, currentY, 62, 31, theme, item.id);
                 drawStyledText(dc, ren, "Inventory", modX, currentY, tColor, s, PowerHudConfig.boldTitles, now);
                 
                 // Draw inventory grid
-                for (int r = 0; r < INV_ROWS; r++) {
-                    for (int c = 0; c < INV_COLS; c++) {
-                        int i = r * INV_COLS + c;
-                        int sx = modX + (int)(c * INV_SLOT_SPACING);
-                        int sy = currentY + INV_GRID_OFFSET + (int)(r * INV_SLOT_SPACING);
+                for (int r = 0; r < 3; r++) {
+                    for (int c = 0; c < 9; c++) {
+                        int i = r * 9 + c;
+                        int sx = modX + (int)(c * 7.0);
+                        int sy = currentY + 11 + (int)(r * 7.0);
                         
                         dc.fill(
                             sx,
                             sy,
-                            sx + INV_SLOT_SIZE,
-                            sy + INV_SLOT_SIZE,
-                            HudData.invSlots[i] ? HudData.invColor : COLOR_BORDER_LIGHT
+                            sx + 5,
+                            sy + 5,
+                            HudData.invSlots[i] ? HudData.invColor : 0x44FFFFFF
                         );
                     }
                 }
                 
-                currentY += INV_HEIGHT_TOTAL;
+                currentY += 35;
             }
             // Special handling for oxygen bar
             else if (item.id.equals("OXY")) {
-                int barW = getWidth(TEXT_OXYGEN_HOLDING, ren, false);
-                int modX = (align == ALIGN_LEFT) ? SPACING_HUD_TOP 
-                    : (align == ALIGN_CENTER ? (sw/2 - barW/2) 
-                    : sw - barW - SPACING_HUD_TOP);
-                String previewVal = item.value.equals(TEXT_PREVIEW) ? TEXT_OXYGEN_HOLDING : item.value;
+                int barW = getWidth("Holding Breath...", ren, false);
+                int modX = (align == 0) ? 5 : (align == 1 ? (sw/2 - barW/2) : sw - barW - 5);
+                String previewVal = item.value.equals("PREVIEW") ? "Holding Breath..." : item.value;
                 
-                renderModularBackground(dc, modX, currentY, barW, OXY_BAR_HEIGHT + hAdj, theme, item.id);
+                renderModularBackground(dc, modX, currentY, barW, 22 + hAdj, theme, item.id);
                 
-                int barColor = (item.valColor & RGB_MASK) | COLOR_BACKGROUND_SEMI;
+                int barColor = (item.valColor & 0x00FFFFFF) | 0xA5000000;
                 int fillW = (int)((barW + 6) * HudData.oxyPercent);
                 
                 if (fillW > 0) {
                     dc.fill(
-                        modX - SPACING_MINI,
-                        currentY - SPACING_MINI,
-                        (modX - SPACING_MINI) + fillW,
-                        currentY + OXY_BAR_HEIGHT + hAdj + 1,
+                        modX - 2,
+                        currentY - 2,
+                        (modX - 2) + fillW,
+                        currentY + 22 + hAdj + 1,
                         barColor
                     );
                 }
@@ -242,31 +236,29 @@ public class HudRenderer implements HudRenderCallback {
                     ren,
                     previewVal,
                     modX + (barW - getWidth(previewVal, ren, false)) / 2,
-                    currentY + hAdj + OXY_BAR_OFFSET,
-                    COLOR_TEXT_WHITE,
+                    currentY + hAdj + 10,
+                    0xFFFFFFFF,
                     s,
                     false,
                     now
                 );
                 
-                currentY += OXY_BAR_HEIGHT + (spacing - PowerHudConfig.lineSpacing);
+                currentY += 22 + (spacing - 12);
             }
             // Standard line rendering
             else {
                 int valW = getWidth(item.value, ren, false);
-                int dotW = (item.id.equals("FPS") && PowerHudConfig.showFpsDot) ? HUD_DOT_WIDTH : 0;
-                int iconW = (item.id.equals("TOOL") && !HudData.toolStack.isEmpty()) ? HUD_ICON_WIDTH : 0;
-                int lineW = getWidth(item.title + ": ", ren, PowerHudConfig.boldTitles) + valW + dotW + iconW + HUD_PADDING;
-                int modX = (align == ALIGN_LEFT) ? SPACING_HUD_TOP 
-                    : (align == ALIGN_CENTER ? (sw/2 - lineW/2) 
-                    : sw - lineW - SPACING_HUD_TOP);
+                int dotW = (item.id.equals("FPS") && PowerHudConfig.showFpsDot) ? 10 : 0;
+                int iconW = (item.id.equals("TOOL") && !HudData.toolStack.isEmpty()) ? 18 : 0;
+                int lineW = getWidth(item.title + ": ", ren, PowerHudConfig.boldTitles) + valW + dotW + iconW + 5;
+                int modX = (align == 0) ? 5 : (align == 1 ? (sw/2 - lineW/2) : sw - lineW - 5);
                 
                 boolean shouldRender = HudOrderScreen.isWorkbenchActive 
-                    || (!(item.id.equals("BLOCK") && item.value.equals(TEXT_AIR)) 
+                    || (!(item.id.equals("BLOCK") && item.value.equals("Air")) 
                     && !(item.id.equals("TOOL") && item.value.isEmpty()));
                 
                 if (shouldRender) {
-                    renderModularBackground(dc, modX, currentY, lineW, HUD_LINE_HEIGHT + hAdj, theme, item.id);
+                    renderModularBackground(dc, modX, currentY, lineW, 9 + hAdj, theme, item.id);
                     drawStyledText(
                         dc,
                         ren,
@@ -289,7 +281,7 @@ public class HudRenderer implements HudRenderCallback {
                     drawStyledText(dc, ren, item.value, curX, currentY + hAdj, item.valColor, s, false, now);
                     
                     if (iconW > 0) {
-                        dc.drawItem(HudData.toolStack, curX + valW + HUD_ICON_OFFSET, currentY + hAdj - HUD_ICON_OFFSET);
+                        dc.drawItem(HudData.toolStack, curX + valW + 4, currentY + hAdj - 4);
                     }
                     
                     currentY += spacing;
@@ -307,13 +299,13 @@ public class HudRenderer implements HudRenderCallback {
             case "FACING" -> new HudLineRaw("Facing", HudData.dirStr, theme);
             case "BIOME" -> new HudLineRaw("Biome", HudData.biomeStr, theme);
             case "TIME" -> new HudLineRaw(HudData.timeLabel, HudData.timeStr, theme);
-            case "VIT" -> new HudLineRaw("Vitality", HudData.vitStr, COLOR_GREEN);
+            case "VIT" -> new HudLineRaw("Vitality", HudData.vitStr, 0xFF55FF55);
             case "BLOCK" -> new HudLineRaw(HudData.targetType, HudData.blockStr, theme);
             case "TOOL" -> new HudLineRaw("Best Tool", HudData.toolStr, theme);
             case "INV" -> new HudLineRaw("Inventory", HudData.invStr, HudData.invColor);
             case "OXY" -> (HudData.oxyStr.isEmpty() && !HudOrderScreen.isWorkbenchActive 
                 ? null 
-                : new HudLineRaw("Oxygen Level", HudData.oxyStr.isEmpty() ? TEXT_OXYGEN_HOLDING : HudData.oxyStr, HudData.oxyColor));
+                : new HudLineRaw("Oxygen Level", HudData.oxyStr.isEmpty() ? "Holding Breath..." : HudData.oxyStr, HudData.oxyColor));
             case "BLOCK_STATS" -> new HudLineRaw("Blocks", HudData.blockStatsStr, theme);
             case "GAMEMODE" -> new HudLineRaw("Mode", HudData.gamemodeStr, theme);
             default -> null;
@@ -322,24 +314,24 @@ public class HudRenderer implements HudRenderCallback {
 
     private void drawFpsDot(DrawContext dc, TextRenderer ren, int x, int y, long now) {
         int dotColor = HudData.fpsColor;
-        float phase = (float)(Math.sin(now / PULSE_SPEED) * PHASE_BASE + PHASE_BASE);
-        float pulse = PULSE_BASE + PULSE_AMPLITUDE * phase;
+        float phase = (float)(Math.sin(now / 100.0) * 0.5 + 0.5);
+        float pulse = 1.0f + 0.4f * phase;
         
-        int r = getRed(dotColor);
-        int g = getGreen(dotColor);
-        int b = getBlue(dotColor);
+        int r = (dotColor >> 16) & 255;
+        int g = (dotColor >> 8) & 255;
+        int b = dotColor & 255;
         
-        r = r + (int)((RED_MASK - r) * phase);
-        g = g + (int)((RED_MASK - g) * phase);
-        b = b + (int)((RED_MASK - b) * phase);
+        r = r + (int)((255 - r) * phase);
+        g = g + (int)((255 - g) * phase);
+        b = b + (int)((255 - b) * phase);
         
-        dotColor = ALPHA_MASK | (r << BLUE_SHIFT) | (g << GREEN_SHIFT) | b;
+        dotColor = (0xFF << 24) | (r << 16) | (g << 8) | b;
         
         dc.getMatrices().push();
-        dc.getMatrices().translate(x + FPS_DOT_OFFSET_X, y + FPS_DOT_OFFSET_Y, 0);
-        dc.getMatrices().scale(FPS_DOT_SCALE * pulse, FPS_DOT_SCALE * pulse, MATRIX_SCALE_Z);
-        dc.getMatrices().translate(-FPS_DOT_OFFSET_X, -FPS_DOT_OFFSET_Y, 0);
-        dc.drawText(ren, Text.literal(FPS_DOT_CHAR), 0, 0, dotColor, true);
+        dc.getMatrices().translate(x + 4, y + 4, 0);
+        dc.getMatrices().scale(1.5f * pulse, 1.5f * pulse, 1.0f);
+        dc.getMatrices().translate(-4, -4, 0);
+        dc.drawText(ren, Text.literal("\u25CF"), 0, 0, dotColor, true);
         dc.getMatrices().pop();
     }
 
@@ -358,8 +350,8 @@ public class HudRenderer implements HudRenderCallback {
         Style st = Style.EMPTY.withFont(f).withBold(b);
         
         if (PowerHudConfig.textEffect == PowerHudConfig.TextEffect.OFF) {
-            int off = getShadowOffset(s);
-            dc.drawText(ren, Text.literal(t).setStyle(st), x + off, y + off, (c & ALPHA_MASK) >> SHADOW_ALPHA_SHIFT | COLOR_TEXT_BLACK, false);
+            int off = (s > 1.4f) ? 2 : 1;
+            dc.drawText(ren, Text.literal(t).setStyle(st), x + off, y + off, (c & 0xFF000000) >> 2 | 0x000000, false);
             dc.drawText(ren, Text.literal(t).setStyle(st), x, y, c, true);
             return;
         }
@@ -375,12 +367,12 @@ public class HudRenderer implements HudRenderCallback {
                 case SHIMMER -> color = hsbToRgb(
                     0.0f,
                     0.0f,
-                    Math.min(1f, 1f * (SHIMMER_MIN + SHIMMER_RANGE * (float)Math.sin(now / SHIMMER_SPEED + i * 0.45)))
+                    Math.min(1f, 1f * (0.75f + 0.25f * (float)Math.sin(now / 220.0 + i * 0.45)))
                 );
                 case CHROMA -> color = hsbToRgb(
-                    ((now + i * CHROMA_OFFSET) % CHROMA_CYCLE_MS) / (float)CHROMA_CYCLE_MS,
-                    CHROMA_SATURATION,
-                    CHROMA_BRIGHTNESS
+                    ((now + i * 90L) % 2400L) / 2400.0f,
+                    0.65f,
+                    1.0f
                 );
             }
             
@@ -425,26 +417,26 @@ public class HudRenderer implements HudRenderCallback {
         String id
     ) {
         int boxAlpha = switch(PowerHudConfig.boxStyle) {
-            case OFF -> COLOR_BACKGROUND_TRANSPARENT;
-            case MIST -> COLOR_BACKGROUND_LIGHT;
-            case HAZE -> COLOR_BACKGROUND_MEDIUM;
-            case DUSK -> COLOR_BACKGROUND_HEAVY;
-            case OBSIDIAN -> COLOR_BACKGROUND_OBSIDIAN;
-            case SOLID -> COLOR_BACKGROUND_SOLID;
+            case OFF -> 0x00000000;
+            case MIST -> 0x11000000;
+            case HAZE -> 0x33000000;
+            case DUSK -> 0x55000000;
+            case OBSIDIAN -> 0xAA000000;
+            case SOLID -> 0xDD000000;
         };
         
-        dc.fill(x - SPACING_MINI, y - SPACING_MINI, x + w + SPACING_MINI + 1, y + h + 1, boxAlpha);
+        dc.fill(x - 2, y - 2, x + w + 3, y + h + 1, boxAlpha);
         
         if (PowerHudConfig.roundCorners) {
-            dc.fill(x - SPACING_MINI, y - SPACING_MINI, x - 1, y - 1, COLOR_BACKGROUND_TRANSPARENT);
-            dc.fill(x + w + SPACING_MINI, y - SPACING_MINI, x + w + SPACING_MINI + 1, y - 1, COLOR_BACKGROUND_TRANSPARENT);
-            dc.fill(x - SPACING_MINI, y + h, x - 1, y + h + 1, COLOR_BACKGROUND_TRANSPARENT);
-            dc.fill(x + w + SPACING_MINI, y + h, x + w + SPACING_MINI + 1, y + h + 1, COLOR_BACKGROUND_TRANSPARENT);
+            dc.fill(x - 2, y - 2, x - 1, y - 1, 0x00000000);
+            dc.fill(x + w + 2, y - 2, x + w + 3, y - 1, 0x00000000);
+            dc.fill(x - 2, y + h, x - 1, y + h + 1, 0x00000000);
+            dc.fill(x + w + 2, y + h, x + w + 3, y + h + 1, 0x00000000);
         }
     }
 
     private static int hsbToRgb(float h, float s, float b) {
         int rgb = java.awt.Color.HSBtoRGB(h, s, b);
-        return ALPHA_MASK | rgb;
+        return 0xFF000000 | rgb;
     }
 }

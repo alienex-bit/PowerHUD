@@ -1,14 +1,14 @@
 package net.steve.powerhud;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
-import java.util.*;
-
-import static net.steve.powerhud.HudConstants.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Collections;
 
 public class HudOrderScreen extends Screen {
     private final Screen parent;
@@ -25,9 +25,9 @@ public class HudOrderScreen extends Screen {
     private List<PowerHudConfig.LayoutEntry> dedupe(List<PowerHudConfig.LayoutEntry> entries) {
         LinkedHashMap<String, PowerHudConfig.LayoutEntry> map = new LinkedHashMap<>();
         for (PowerHudConfig.LayoutEntry e : entries) {
-            if (TEXT_SPACE.equals(e.id)) {
-                String sid = TEXT_SPACE + "_" + java.util.UUID.randomUUID().toString();
-                map.put(sid, new PowerHudConfig.LayoutEntry(TEXT_SPACE, e.spacerHeight, e.alignment));
+            if ("SPACE".equals(e.id)) {
+                String sid = "SPACE_" + java.util.UUID.randomUUID().toString();
+                map.put(sid, new PowerHudConfig.LayoutEntry("SPACE", e.spacerHeight, e.alignment));
             } else {
                 map.put(e.id, new PowerHudConfig.LayoutEntry(e.id, e.spacerHeight, e.alignment));
             }
@@ -42,21 +42,21 @@ public class HudOrderScreen extends Screen {
         this.clearChildren();
         
         int cw = this.width / 3;
-        int sy = UI_COLUMN_START_Y;
-        int eh = BUTTON_HEIGHT_ELEMENT;
+        int sy = 85;
+        int eh = 15;
         
-        renderCol(ALIGN_LEFT, 10, sy, cw - 20, eh);
-        renderCol(ALIGN_CENTER, cw + 10, sy, cw - 20, eh);
-        renderCol(ALIGN_RIGHT, (cw * 2) + 10, sy, cw - 20, eh);
+        renderCol(0, 10, sy, cw - 20, eh);
+        renderCol(1, cw + 10, sy, cw - 20, eh);
+        renderCol(2, (cw * 2) + 10, sy, cw - 20, eh);
         
-        int slotY = this.height - UI_BOTTOM_OFFSET;
+        int slotY = this.height - 40;
         
         addDrawableChild(ButtonWidget.builder(Text.literal("Reset to Default"), b -> {
             PowerHudConfig.resetToVanilla();
             tempOrder.clear();
             tempOrder.addAll(dedupe(PowerHudConfig.hudOrder));
             init();
-        }).dimensions(this.width/2 - 160, slotY + SPACING_HUD_TOP, BUTTON_WIDTH_ACTION, BUTTON_HEIGHT_TALL)
+        }).dimensions(this.width/2 - 160, slotY + 5, 120, 16)
           .tooltip(Tooltip.of(Text.literal("Restore default layout")))
           .build());
         
@@ -66,7 +66,7 @@ public class HudOrderScreen extends Screen {
             PowerHudConfig.save();
             isWorkbenchActive = false;
             this.client.setScreen(parent);
-        }).dimensions(this.width / 2 + SCREEN_CENTER_OFFSET + 45, slotY + SPACING_HUD_TOP, BUTTON_WIDTH_SMALL, BUTTON_HEIGHT_TALL)
+        }).dimensions(this.width / 2 + 50, slotY + 5, 100, 16)
           .tooltip(Tooltip.of(Text.literal("Save and Exit")))
           .build());
     }
@@ -87,7 +87,7 @@ public class HudOrderScreen extends Screen {
             final int lIdx = indices.get(i);
             final int locIdx = i;
             PowerHudConfig.LayoutEntry ent = items.get(i);
-            String label = ent.id.equals(TEXT_SPACE) ? "Spacer" : ent.id;
+            String label = ent.id.equals("SPACE") ? "Spacer" : ent.id;
             
             String tip = switch(ent.id) {
                 case "XYZ" -> "Co-Ordinates Element";
@@ -113,20 +113,20 @@ public class HudOrderScreen extends Screen {
             
             int cx = x + w - 98;
             
-            if (align > ALIGN_LEFT) {
+            if (align > 0) {
                 addDrawableChild(ButtonWidget.builder(Text.literal("<"), b -> {
                     ent.alignment--;
                     init();
-                }).dimensions(cx, cy, BUTTON_WIDTH_TINY, h - 1)
+                }).dimensions(cx, cy, 14, h-1)
                   .tooltip(Tooltip.of(Text.literal("Move Left")))
                   .build());
             }
             
-            if (align < ALIGN_RIGHT) {
+            if (align < 2) {
                 addDrawableChild(ButtonWidget.builder(Text.literal(">"), b -> {
                     ent.alignment++;
                     init();
-                }).dimensions(cx + BUTTON_HEIGHT_ELEMENT, cy, BUTTON_WIDTH_TINY, h - 1)
+                }).dimensions(cx + 15, cy, 14, h-1)
                   .tooltip(Tooltip.of(Text.literal("Move Right")))
                   .build());
             }
@@ -134,28 +134,28 @@ public class HudOrderScreen extends Screen {
             addDrawableChild(ButtonWidget.builder(Text.literal("U"), b -> {
                 move(align, locIdx, -1);
                 init();
-            }).dimensions(cx + 30, cy, BUTTON_WIDTH_COMPACT, h - 1)
+            }).dimensions(cx + 30, cy, 15, h-1)
               .tooltip(Tooltip.of(Text.literal("Move UP")))
               .build());
             
             addDrawableChild(ButtonWidget.builder(Text.literal("D"), b -> {
                 move(align, locIdx, 1);
                 init();
-            }).dimensions(cx + 46, cy, BUTTON_WIDTH_COMPACT, h - 1)
+            }).dimensions(cx + 46, cy, 15, h-1)
               .tooltip(Tooltip.of(Text.literal("Move DOWN")))
               .build());
             
             addDrawableChild(ButtonWidget.builder(Text.literal("+"), b -> {
-                tempOrder.add(lIdx + 1, new PowerHudConfig.LayoutEntry(TEXT_SPACE, 10, align));
+                tempOrder.add(lIdx + 1, new PowerHudConfig.LayoutEntry("SPACE", 10, align));
                 init();
-            }).dimensions(cx + 62, cy, BUTTON_WIDTH_COMPACT, h - 1)
+            }).dimensions(cx + 62, cy, 15, h-1)
               .tooltip(Tooltip.of(Text.literal("Add Spacer")))
               .build());
             
             addDrawableChild(ButtonWidget.builder(Text.literal("x"), b -> {
                 tempOrder.remove(lIdx);
                 init();
-            }).dimensions(cx + 78, cy, BUTTON_WIDTH_COMPACT, h - 1)
+            }).dimensions(cx + 78, cy, 15, h-1)
               .tooltip(Tooltip.of(Text.literal("Remove")))
               .build());
             
@@ -182,13 +182,13 @@ public class HudOrderScreen extends Screen {
         if (skipNextRender) {
             skipNextRender = false;
             this.renderBackground(dc, mx, my, t);
-            dc.fill(0, 0, this.width, this.height, COLOR_BACKGROUND_OVERLAY);
+            dc.fill(0, 0, this.width, this.height, 0x77000000);
             super.render(dc, mx, my, t);
             return;
         }
         
         this.renderBackground(dc, mx, my, t);
-        dc.fill(0, 0, this.width, this.height, COLOR_BACKGROUND_OVERLAY);
+        dc.fill(0, 0, this.width, this.height, 0x77000000);
         
         List<PowerHudConfig.LayoutEntry> backup = PowerHudConfig.hudOrder;
         PowerHudConfig.hudOrder = tempOrder;
@@ -198,21 +198,15 @@ public class HudOrderScreen extends Screen {
         PowerHudConfig.hudOrder = backup;
         
         int cw = this.width / 3;
-        dc.drawCenteredTextWithShadow(textRenderer, "LEFT STACK", cw / 2, UI_HEADER_Y, COLOR_TEXT_WHITE);
-        dc.drawCenteredTextWithShadow(textRenderer, "CENTER STACK", this.width / 2, UI_HEADER_Y, COLOR_TEXT_WHITE);
-        dc.drawCenteredTextWithShadow(textRenderer, "RIGHT STACK", (this.width - cw / 2), UI_HEADER_Y, COLOR_TEXT_WHITE);
-        dc.fill(cw, UI_SEPARATOR_Y, cw + 1, this.height - UI_BOTTOM_OFFSET, COLOR_SEPARATOR);
-        dc.fill(cw * 2, UI_SEPARATOR_Y, cw * 2 + 1, this.height - UI_BOTTOM_OFFSET, COLOR_SEPARATOR);
+        dc.drawCenteredTextWithShadow(textRenderer, "LEFT STACK", cw / 2, 72, 0xFFFFFFFF);
+        dc.drawCenteredTextWithShadow(textRenderer, "CENTER STACK", this.width / 2, 72, 0xFFFFFFFF);
+        dc.drawCenteredTextWithShadow(textRenderer, "RIGHT STACK", (this.width - cw / 2), 72, 0xFFFFFFFF);
+        dc.fill(cw, 65, cw + 1, this.height - 40, 0x33FFFFFF);
+        dc.fill(cw * 2, 65, cw * 2 + 1, this.height - 40, 0x33FFFFFF);
         
         super.render(dc, mx, my, t);
     }
 
     @Override
     public void renderBackground(DrawContext dc, int mx, int my, float d) {}
-
-    @Override
-    public void close() {
-        isWorkbenchActive = false;
-        super.close();
-    }
 }
