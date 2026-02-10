@@ -14,9 +14,7 @@ public class HudOrderScreen extends Screen {
     private final Screen parent;
     private final List<PowerHudConfig.LayoutEntry> tempOrder;
     public static boolean isWorkbenchActive = false;
-    private static int activeSlot = -1;
-    private String overlayMessage = "";
-    private long overlayMessageTime = 0;
+    private boolean skipNextRender = false;
 
     public HudOrderScreen(Screen parent) {
         super(Text.literal("HUD Workbench"));
@@ -37,13 +35,9 @@ public class HudOrderScreen extends Screen {
         return new ArrayList<>(map.values());
     }
 
-    private void showMessage(String message) {
-        this.overlayMessage = message;
-        this.overlayMessageTime = System.currentTimeMillis();
-    }
-
     @Override
     protected void init() {
+        skipNextRender = true;
         isWorkbenchActive = true;
         this.clearChildren();
         
@@ -56,43 +50,15 @@ public class HudOrderScreen extends Screen {
         renderCol(2, (cw * 2) + 10, sy, cw - 20, eh);
         
         int slotY = this.height - 40;
-        int bw = 60;
         
-        addDrawableChild(ButtonWidget.builder(Text.literal("DEFAULT"), b -> {
+        addDrawableChild(ButtonWidget.builder(Text.literal("Reset to Default"), b -> {
             PowerHudConfig.resetToVanilla();
             tempOrder.clear();
             tempOrder.addAll(dedupe(PowerHudConfig.hudOrder));
-            activeSlot = -1;
             init();
-            showMessage("Default Layout Restored");
-        }).dimensions(this.width/2 - 160, slotY, bw, 14)
-          .tooltip(Tooltip.of(Text.literal("Restore screenshot baseline")))
+        }).dimensions(this.width/2 - 160, slotY + 5, 120, 16)
+          .tooltip(Tooltip.of(Text.literal("Restore default layout")))
           .build());
-        
-        for (int i = 0; i < 3; i++) {
-            final int slot = i;
-            
-            addDrawableChild(ButtonWidget.builder(Text.literal("SAVE " + (i+1)), b -> {
-                PowerHudConfig.saveSlot(slot, dedupe(tempOrder));
-                showMessage("Layout Saved to Slot " + (slot + 1));
-            }).dimensions(this.width/2 - 95 + (i * (bw+2)), slotY, bw, 14)
-              .tooltip(Tooltip.of(Text.literal("Save Global Snapshot to Slot " + (i+1))))
-              .build());
-            
-            addDrawableChild(ButtonWidget.builder(Text.literal("LOAD " + (i+1)), b -> {
-                if(!PowerHudConfig.layoutSlots.get(slot).isEmpty()) {
-                    tempOrder.clear();
-                    for(PowerHudConfig.LayoutEntry e : PowerHudConfig.layoutSlots.get(slot)) {
-                        tempOrder.add(new PowerHudConfig.LayoutEntry(e.id, e.spacerHeight, e.alignment));
-                    }
-                    activeSlot = slot;
-                    init();
-                    showMessage("Slot " + (slot + 1) + " Loaded");
-                }
-            }).dimensions(this.width/2 - 95 + (i * (bw+2)), slotY + 15, bw, 14)
-              .tooltip(Tooltip.of(Text.literal("Restore Global Snapshot from Slot " + (i+1))))
-              .build());
-        }
         
         addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> {
             PowerHudConfig.hudOrder.clear();
@@ -100,7 +66,7 @@ public class HudOrderScreen extends Screen {
             PowerHudConfig.save();
             isWorkbenchActive = false;
             this.client.setScreen(parent);
-        }).dimensions(this.width / 2 + 100, slotY + 5, 55, 16)
+        }).dimensions(this.width / 2 + 50, slotY + 5, 100, 16)
           .tooltip(Tooltip.of(Text.literal("Save and Exit")))
           .build());
     }
@@ -213,17 +179,22 @@ public class HudOrderScreen extends Screen {
 
     @Override
     public void render(DrawContext dc, int mx, int my, float t) {
+        if (skipNextRender) {
+            skipNextRender = false;
+            this.renderBackground(dc, mx, my, t);
+            dc.fill(0, 0, this.width, this.height, 0x77000000);
+            super.render(dc, mx, my, t);
+            return;
+        }
+        
+        this.renderBackground(dc, mx, my, t);
         dc.fill(0, 0, this.width, this.height, 0x77000000);
         
         List<PowerHudConfig.LayoutEntry> backup = PowerHudConfig.hudOrder;
         PowerHudConfig.hudOrder = tempOrder;
         
-        dc.getMatrices().push();
-        dc.getMatrices().loadIdentity();
-        
         new HudRenderer().renderMainHud(dc, MinecraftClient.getInstance());
         
-        dc.getMatrices().pop();
         PowerHudConfig.hudOrder = backup;
         
         int cw = this.width / 3;
@@ -233,26 +204,7 @@ public class HudOrderScreen extends Screen {
         dc.fill(cw, 65, cw + 1, this.height - 40, 0x33FFFFFF);
         dc.fill(cw * 2, 65, cw * 2 + 1, this.height - 40, 0x33FFFFFF);
         
-        if (activeSlot != -1) {
-            int hx = this.width/2 - 95 + (activeSlot * 62);
-            dc.fill(hx - 1, this.height - 26, hx + 61, this.height - 10, 0xAA55FF55);
-        }
-        
         super.render(dc, mx, my, t);
-        
-        if (!overlayMessage.isEmpty() && (System.currentTimeMillis() - overlayMessageTime) < 1000) {
-            int messageWidth = textRenderer.getWidth(overlayMessage);
-            int messageX = (this.width - messageWidth) / 2;
-            int messageY = 50;
-            
-            dc.fill(messageX - 10, messageY - 8, messageX + messageWidth + 10, messageY + 12, 0xEE1a1a1a);
-            dc.fill(messageX - 11, messageY - 9, messageX + messageWidth + 11, messageY - 8, 0xFF55FF55);
-            dc.fill(messageX - 11, messageY + 12, messageX + messageWidth + 11, messageY + 13, 0xFF55FF55);
-            dc.fill(messageX - 11, messageY - 8, messageX - 10, messageY + 12, 0xFF55FF55);
-            dc.fill(messageX + messageWidth + 10, messageY - 8, messageX + messageWidth + 11, messageY + 12, 0xFF55FF55);
-            
-            dc.drawCenteredTextWithShadow(textRenderer, overlayMessage, this.width / 2, messageY, 0xFFFFFFFF);
-        }
     }
 
     @Override

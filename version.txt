@@ -1,7 +1,7 @@
 ﻿PowerHUD Version Information
 ============================
 Version: v1.9.99
-Build Date: 2026-02-10 21:00:35
+Build Date: 2026-02-10 22:12:14
 Minecraft: 1.21.4
 Fabric Loader: 0.16.9
 Fabric API: 0.111.0+1.21.4
