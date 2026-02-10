@@ -1,0 +1,12 @@
+{
+    "required":  true,
+    "package":  "net.steve.powerhud.mixin",
+    "compatibilityLevel":  "JAVA_21",
+    "client":  [
+                   "DrawContextMixin",
+                   "BlockCounterMixin"
+               ],
+    "injectors":  {
+                      "defaultRequire":  1
+                  }
+}

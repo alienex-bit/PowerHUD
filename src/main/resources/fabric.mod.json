@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "powerhud",
+  "version": "v1.9.99",
+  "name": "PowerHUD",
+  "description": "A powerful, customizable HUD mod for Fabric.",
+  "authors": [
+    "Steve"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+  "license": "MIT",
+  "icon": "assets/powerhud/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "net.steve.powerhud.PowerHUD"
+    ]
+  },
+  "mixins": [
+    "powerhud.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.9",
+    "minecraft": "~1.21.4",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
