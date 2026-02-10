@@ -1,31 +1,266 @@
 package net.steve.powerhud;
-import com.google.gson.Gson; import com.google.gson.GsonBuilder;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
-import java.io.*; import java.nio.file.Path;
-import java.util.ArrayList; import java.util.Arrays; import java.util.List;
+import java.io.*;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class PowerHudConfig {
+    // Enums
     public enum FpsMode { MINIMAL, NORMAL, FULL }
     public enum BoxStyle { OFF, MIST, HAZE, DUSK, OBSIDIAN, SOLID }
-    public enum TextEffect { OFF, SHIMMER, BREATH, CHROMA, RAINBOW_STATIC, TERMINAL, GHOST, GLITCH, NEON, LAVA, AURORA, MATRIX }
+    public enum TextEffect { 
+        OFF, SHIMMER, BREATH, CHROMA, RAINBOW_STATIC, 
+        TERMINAL, GHOST, GLITCH, NEON, LAVA, AURORA, MATRIX 
+    }
     public enum InventoryMode { GRID, PERCENT, FRACTION }
-    public static final int[] COLORS = {0xFFFFFFFF, 0xFF55FF55, 0xFFFFD700, 0xFF00FFFF, 0xFFFF5555, 0xFFFFFF55, 0xFF55FF55, 0xFFAA00AA, 0xFFFF55FF, 0xFFAAAAAA};
-    public static final String[] COLOR_NAMES = {"White", "Green", "Gold", "Cyan", "Red", "Yellow", "Blue", "Purple", "Magenta", "Gray"};
-    public static final String[] FONT_NAMES = {"Vanilla", "JetBrains", "Roboto", "Fira", "Cascadia", "Source", "Comic", "Monofur", "Ubuntu", "Inter"};
-    public static boolean hudEnabled = true, showFps = true, showCoords = true, showDirection = true, showBiome = true, showTime = true, showVitality = true, showBlock = true, showInventory = true, showOxygen = true, showGamemode = true, fpsPulse = true, boldTitles = false, roundCorners = true, hideVanillaOxygen = false, enableF3Replacement = false, showFpsDot = true, showBestTool = true, showBlockStats = true; 
-    public static int debugTab = 0, hudScaleVert = 100, themeIndex = 0, lineSpacing = 12, fontIndex = 0, titleColorIndex = 0, redThresh = 30, orangeThresh = 60, yellowThresh = 100;
-    public static FpsMode fpsMode = FpsMode.MINIMAL; public static BoxStyle boxStyle = BoxStyle.DUSK; public static TextEffect textEffect = TextEffect.OFF; public static InventoryMode inventoryMode = InventoryMode.GRID;
+    
+    // Color constants
+    public static final int[] COLORS = {
+        0xFFFFFFFF, // White
+        0xFF55FF55, // Green
+        0xFFFFD700, // Gold
+        0xFF00FFFF, // Cyan
+        0xFFFF5555, // Red
+        0xFFFFFF55, // Yellow
+        0xFF55FF55, // Blue
+        0xFFAA00AA, // Purple
+        0xFFFF55FF, // Magenta
+        0xFFAAAAAA  // Gray
+    };
+    
+    public static final String[] COLOR_NAMES = {
+        "White", "Green", "Gold", "Cyan", "Red", 
+        "Yellow", "Blue", "Purple", "Magenta", "Gray"
+    };
+    
+    public static final String[] FONT_NAMES = {
+        "Vanilla", "JetBrains", "Roboto", "Fira", "Cascadia", 
+        "Source", "Comic", "Monofur", "Ubuntu", "Inter"
+    };
+    
+    // Boolean settings
+    public static boolean hudEnabled = true;
+    public static boolean showFps = true;
+    public static boolean showCoords = true;
+    public static boolean showDirection = true;
+    public static boolean showBiome = true;
+    public static boolean showTime = true;
+    public static boolean showVitality = true;
+    public static boolean showBlock = true;
+    public static boolean showInventory = true;
+    public static boolean showOxygen = true;
+    public static boolean showGamemode = true;
+    public static boolean fpsPulse = true;
+    public static boolean boldTitles = false;
+    public static boolean roundCorners = true;
+    public static boolean hideVanillaOxygen = false;
+    public static boolean enableF3Replacement = false;
+    public static boolean showFpsDot = true;
+    public static boolean showBestTool = true;
+    public static boolean showBlockStats = true;
+    
+    // Integer settings
+    public static int debugTab = 0;
+    public static int hudScaleVert = 100;
+    public static int themeIndex = 0;
+    public static int lineSpacing = 12;
+    public static int fontIndex = 0;
+    public static int titleColorIndex = 0;
+    public static int redThresh = 30;
+    public static int orangeThresh = 60;
+    public static int yellowThresh = 100;
+    
+    // Enum settings
+    public static FpsMode fpsMode = FpsMode.MINIMAL;
+    public static BoxStyle boxStyle = BoxStyle.DUSK;
+    public static TextEffect textEffect = TextEffect.OFF;
+    public static InventoryMode inventoryMode = InventoryMode.GRID;
+    
+    // Layout settings
     public static List<LayoutEntry> hudOrder = new ArrayList<>();
-    public static List<List<LayoutEntry>> layoutSlots = new ArrayList<>(Arrays.asList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
-    public static class LayoutEntry { public String id; public int spacerHeight; public int alignment; public LayoutEntry(String id, int h, int align) { this.id = id; this.spacerHeight = h; this.alignment = align; } }
-    public static void resetToVanilla() { hudOrder.clear(); hudOrder.add(new LayoutEntry("XYZ", 0, 0)); hudOrder.add(new LayoutEntry("FACING", 0, 0)); hudOrder.add(new LayoutEntry("BIOME", 0, 0)); hudOrder.add(new LayoutEntry("TIME", 0, 0)); hudOrder.add(new LayoutEntry("VIT", 0, 0)); hudOrder.add(new LayoutEntry("BLOCK", 0, 0)); hudOrder.add(new LayoutEntry("OXY", 0, 0)); hudOrder.add(new LayoutEntry("GAMEMODE", 0, 0)); hudOrder.add(new LayoutEntry("FPS", 0, 1)); hudOrder.add(new LayoutEntry("BLOCK_STATS", 0, 2)); hudOrder.add(new LayoutEntry("TOOL", 0, 2)); hudOrder.add(new LayoutEntry("INV", 0, 2)); save(); }
-    public static void saveSlot(int slot, List<LayoutEntry> current) { layoutSlots.set(slot, new ArrayList<>(current)); save(); }
-    public static void setRed(Integer v) { if (v != null && v <= orangeThresh - 5) redThresh = v; }
-    public static void setOrange(Integer v) { if (v != null && v >= redThresh + 5 && v <= yellowThresh - 5) orangeThresh = v; }
-    public static void setYellow(Integer v) { if (v != null && v >= orangeThresh + 5) yellowThresh = v; }
-    private static final Path CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("powerhud.json");
+    public static List<List<LayoutEntry>> layoutSlots = new ArrayList<>(
+        Arrays.asList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>())
+    );
+    
+    public static class LayoutEntry {
+        public String id;
+        public int spacerHeight;
+        public int alignment;
+        
+        public LayoutEntry(String id, int h, int align) {
+            this.id = id;
+            this.spacerHeight = h;
+            this.alignment = align;
+        }
+    }
+    
+    // Reset to default layout
+    public static void resetToVanilla() {
+        hudOrder.clear();
+        hudOrder.add(new LayoutEntry("XYZ", 0, 0));
+        hudOrder.add(new LayoutEntry("FACING", 0, 0));
+        hudOrder.add(new LayoutEntry("BIOME", 0, 0));
+        hudOrder.add(new LayoutEntry("TIME", 0, 0));
+        hudOrder.add(new LayoutEntry("VIT", 0, 0));
+        hudOrder.add(new LayoutEntry("BLOCK", 0, 0));
+        hudOrder.add(new LayoutEntry("OXY", 0, 0));
+        hudOrder.add(new LayoutEntry("GAMEMODE", 0, 0));
+        hudOrder.add(new LayoutEntry("FPS", 0, 1));
+        hudOrder.add(new LayoutEntry("BLOCK_STATS", 0, 2));
+        hudOrder.add(new LayoutEntry("TOOL", 0, 2));
+        hudOrder.add(new LayoutEntry("INV", 0, 2));
+        save();
+    }
+    
+    public static void saveSlot(int slot, List<LayoutEntry> current) {
+        layoutSlots.set(slot, new ArrayList<>(current));
+        save();
+    }
+    
+    // Threshold setters with validation
+    public static void setRed(Integer v) {
+        if (v != null && v <= orangeThresh - 5) {
+            redThresh = v;
+        }
+    }
+    
+    public static void setOrange(Integer v) {
+        if (v != null && v >= redThresh + 5 && v <= yellowThresh - 5) {
+            orangeThresh = v;
+        }
+    }
+    
+    public static void setYellow(Integer v) {
+        if (v != null && v >= orangeThresh + 5) {
+            yellowThresh = v;
+        }
+    }
+    
+    // File I/O
+    private static final Path CONFIG_FILE = FabricLoader.getInstance()
+        .getConfigDir()
+        .resolve("powerhud.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    public static void save() { try (FileWriter w = new FileWriter(CONFIG_FILE.toFile())) { GSON.toJson(new ConfigData(), w); } catch (Exception e) {} }
-    public static void load() { File f = CONFIG_FILE.toFile(); if (!f.exists()) { resetToVanilla(); return; } try (FileReader r = new FileReader(f)) { ConfigData d = GSON.fromJson(r, ConfigData.class); if (d != null) { hudEnabled=d.hudEnabled; showFps=d.showFps; showCoords=d.showCoords; showDirection=d.showDirection; showBiome=d.showBiome; showTime=d.showTime; showVitality=d.showVitality; showBlock=d.showBlock; showInventory=d.showInventory; showOxygen=d.showOxygen; showGamemode=d.showGamemode; hideVanillaOxygen=d.hideVanillaOxygen; enableF3Replacement=d.enableF3Replacement; showFpsDot=d.showFpsDot; showBestTool=d.showBestTool; showBlockStats=d.showBlockStats; hudScaleVert=(d.hudScaleVert != 0) ? d.hudScaleVert : 100; fpsMode=(d.fpsMode != null) ? d.fpsMode : FpsMode.MINIMAL; themeIndex=d.themeIndex; boxStyle=(d.boxStyle != null) ? d.boxStyle : BoxStyle.DUSK; inventoryMode=(d.inventoryMode != null) ? d.inventoryMode : InventoryMode.GRID; redThresh=d.redThresh; orangeThresh=d.orangeThresh; yellowThresh=d.yellowThresh; lineSpacing=(d.lineSpacing < 12) ? 12 : d.lineSpacing; fontIndex=d.fontIndex; titleColorIndex=d.titleColorIndex; boldTitles=d.boldTitles; roundCorners=d.roundCorners; fpsPulse=d.fpsPulse; textEffect=(d.textEffect != null) ? d.textEffect : TextEffect.OFF; hudOrder = (d.hudOrder != null) ? d.hudOrder : new ArrayList<>(); layoutSlots = (d.layoutSlots != null) ? d.layoutSlots : new ArrayList<>(Arrays.asList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>())); if (hudOrder.isEmpty()) resetToVanilla(); else { boolean hasGM = false; for(LayoutEntry e : hudOrder) if(e.id.equals("GAMEMODE")) hasGM = true; if(!hasGM) { hudOrder.add(new LayoutEntry("GAMEMODE", 0, 0)); save(); } } } } catch (Exception e) { resetToVanilla(); } }
-    private static class ConfigData { boolean hudEnabled=PowerHudConfig.hudEnabled, showFps=PowerHudConfig.showFps, showCoords=PowerHudConfig.showCoords, showDirection=PowerHudConfig.showDirection, showBiome=PowerHudConfig.showBiome, showTime=PowerHudConfig.showTime, showVitality=PowerHudConfig.showVitality, showBlock=PowerHudConfig.showBlock, showInventory=PowerHudConfig.showInventory, showOxygen=PowerHudConfig.showOxygen, showGamemode=PowerHudConfig.showGamemode, hideVanillaOxygen=PowerHudConfig.hideVanillaOxygen, enableF3Replacement=PowerHudConfig.enableF3Replacement, showFpsDot=PowerHudConfig.showFpsDot, showBestTool=PowerHudConfig.showBestTool, showBlockStats=PowerHudConfig.showBlockStats, fpsPulse=PowerHudConfig.fpsPulse, boldTitles=PowerHudConfig.boldTitles, roundCorners=PowerHudConfig.roundCorners; FpsMode fpsMode=PowerHudConfig.fpsMode; BoxStyle boxStyle=PowerHudConfig.boxStyle; TextEffect textEffect=PowerHudConfig.textEffect; InventoryMode inventoryMode=PowerHudConfig.inventoryMode; int hudScaleVert=PowerHudConfig.hudScaleVert, themeIndex=PowerHudConfig.themeIndex, lineSpacing=PowerHudConfig.lineSpacing, redThresh=PowerHudConfig.redThresh, orangeThresh=PowerHudConfig.orangeThresh, yellowThresh=PowerHudConfig.yellowThresh, fontIndex=PowerHudConfig.fontIndex, titleColorIndex=PowerHudConfig.titleColorIndex; List<LayoutEntry> hudOrder=new ArrayList<>(PowerHudConfig.hudOrder); List<List<LayoutEntry>> layoutSlots=new ArrayList<>(PowerHudConfig.layoutSlots); }
+    
+    private static class ConfigData {
+        // Boolean fields
+        boolean hudEnabled = PowerHudConfig.hudEnabled;
+        boolean showFps = PowerHudConfig.showFps;
+        boolean showCoords = PowerHudConfig.showCoords;
+        boolean showDirection = PowerHudConfig.showDirection;
+        boolean showBiome = PowerHudConfig.showBiome;
+        boolean showTime = PowerHudConfig.showTime;
+        boolean showVitality = PowerHudConfig.showVitality;
+        boolean showBlock = PowerHudConfig.showBlock;
+        boolean showInventory = PowerHudConfig.showInventory;
+        boolean showOxygen = PowerHudConfig.showOxygen;
+        boolean showGamemode = PowerHudConfig.showGamemode;
+        boolean hideVanillaOxygen = PowerHudConfig.hideVanillaOxygen;
+        boolean enableF3Replacement = PowerHudConfig.enableF3Replacement;
+        boolean showFpsDot = PowerHudConfig.showFpsDot;
+        boolean showBestTool = PowerHudConfig.showBestTool;
+        boolean showBlockStats = PowerHudConfig.showBlockStats;
+        boolean fpsPulse = PowerHudConfig.fpsPulse;
+        boolean boldTitles = PowerHudConfig.boldTitles;
+        boolean roundCorners = PowerHudConfig.roundCorners;
+        
+        // Enum fields
+        FpsMode fpsMode = PowerHudConfig.fpsMode;
+        BoxStyle boxStyle = PowerHudConfig.boxStyle;
+        TextEffect textEffect = PowerHudConfig.textEffect;
+        InventoryMode inventoryMode = PowerHudConfig.inventoryMode;
+        
+        // Integer fields
+        int hudScaleVert = PowerHudConfig.hudScaleVert;
+        int themeIndex = PowerHudConfig.themeIndex;
+        int lineSpacing = PowerHudConfig.lineSpacing;
+        int redThresh = PowerHudConfig.redThresh;
+        int orangeThresh = PowerHudConfig.orangeThresh;
+        int yellowThresh = PowerHudConfig.yellowThresh;
+        int fontIndex = PowerHudConfig.fontIndex;
+        int titleColorIndex = PowerHudConfig.titleColorIndex;
+        
+        // Layout fields
+        List<LayoutEntry> hudOrder = new ArrayList<>(PowerHudConfig.hudOrder);
+        List<List<LayoutEntry>> layoutSlots = new ArrayList<>(PowerHudConfig.layoutSlots);
+    }
+    
+    public static void load() {
+        if (!CONFIG_FILE.toFile().exists()) {
+            resetToVanilla();
+            return;
+        }
+        
+        try (Reader reader = new FileReader(CONFIG_FILE.toFile())) {
+            ConfigData data = GSON.fromJson(reader, ConfigData.class);
+            if (data == null) {
+                resetToVanilla();
+                return;
+            }
+            
+            // Apply boolean settings
+            hudEnabled = data.hudEnabled;
+            showFps = data.showFps;
+            showCoords = data.showCoords;
+            showDirection = data.showDirection;
+            showBiome = data.showBiome;
+            showTime = data.showTime;
+            showVitality = data.showVitality;
+            showBlock = data.showBlock;
+            showInventory = data.showInventory;
+            showOxygen = data.showOxygen;
+            showGamemode = data.showGamemode;
+            hideVanillaOxygen = data.hideVanillaOxygen;
+            enableF3Replacement = data.enableF3Replacement;
+            showFpsDot = data.showFpsDot;
+            showBestTool = data.showBestTool;
+            showBlockStats = data.showBlockStats;
+            fpsPulse = data.fpsPulse;
+            boldTitles = data.boldTitles;
+            roundCorners = data.roundCorners;
+            
+            // Apply enum settings
+            fpsMode = data.fpsMode;
+            boxStyle = data.boxStyle;
+            textEffect = data.textEffect;
+            inventoryMode = data.inventoryMode;
+            
+            // Apply integer settings
+            hudScaleVert = data.hudScaleVert;
+            themeIndex = data.themeIndex;
+            lineSpacing = data.lineSpacing;
+            redThresh = data.redThresh;
+            orangeThresh = data.orangeThresh;
+            yellowThresh = data.yellowThresh;
+            fontIndex = data.fontIndex;
+            titleColorIndex = data.titleColorIndex;
+            
+            // Apply layout settings
+            hudOrder = data.hudOrder != null ? data.hudOrder : new ArrayList<>();
+            layoutSlots = data.layoutSlots != null ? data.layoutSlots : new ArrayList<>(
+                Arrays.asList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>())
+            );
+            
+            if (hudOrder.isEmpty()) {
+                resetToVanilla();
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to load PowerHUD config: " + e.getMessage());
+            resetToVanilla();
+        }
+    }
+    
+    public static void save() {
+        try (Writer writer = new FileWriter(CONFIG_FILE.toFile())) {
+            ConfigData data = new ConfigData();
+            GSON.toJson(data, writer);
+        } catch (IOException e) {
+            System.err.println("Failed to save PowerHUD config: " + e.getMessage());
+        }
+    }
 }
