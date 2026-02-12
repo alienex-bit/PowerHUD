@@ -82,7 +82,27 @@ Press \O\ in-game to open the configuration screen.
 
 ## 🖼️ Screenshots
 
-*Coming soon - Add screenshots of your HUD in action!*
+### HUD in Action
+![HUD Overview](screenshots/hud-overview.png)
+*Main HUD display showing FPS, coordinates, and other elements*
+
+### Configuration Screen
+![Config Screen](screenshots/config-screen.png)
+*PowerHUD configuration interface*
+
+### HUD Workbench
+![HUD Workbench](screenshots/hud-workbench.png)
+*Visual drag-and-drop editor for arranging HUD elements*
+
+### Oxygen Overlay
+![Oxygen Overlay](screenshots/oxygen-overlay.png)
+*Centered oxygen bar with color-coded states*
+
+### Custom Fonts & Colors
+![Fonts and Colors](screenshots/fonts-colors.png)
+*Examples of different fonts and color themes*
+
+*More screenshots coming soon!*
 
 ## 🛠️ Building from Source
 
