@@ -14,7 +14,7 @@ import static net.steve.powerhud.HudConstants.*;
 public class PowerHudConfig {
     // Enums
     public enum FpsMode { MINIMAL, NORMAL, FULL }
-    public enum BoxStyle { OFF, MIST, HAZE, DUSK, OBSIDIAN, SOLID }
+    public enum BoxStyle { OFF, FAINT, LIGHT, SUBTLE, MEDIUM, STRONG, DARK, SOLID }
     public enum InventoryMode { GRID, PERCENT, FRACTION }
     
     // Color constants - 20 colors for comprehensive theming
@@ -87,7 +87,7 @@ public class PowerHudConfig {
     
     // Enum settings
     public static FpsMode fpsMode = FpsMode.MINIMAL;
-    public static BoxStyle boxStyle = BoxStyle.DUSK;
+    public static BoxStyle boxStyle = BoxStyle.OFF; // Changed default to OFF for clean look
     public static InventoryMode inventoryMode = InventoryMode.GRID;
     
     // Layout settings
@@ -212,7 +212,8 @@ public class PowerHudConfig {
         int yellowThresh = PowerHudConfig.yellowThresh;
         int fontIndex = PowerHudConfig.fontIndex;
         int titleColorIndex = PowerHudConfig.titleColorIndex;
-        
+        int oxygenOverlayY = PowerHudConfig.oxygenOverlayY;
+
         // Layout fields
         List<LayoutEntry> hudOrder = new ArrayList<>(PowerHudConfig.hudOrder);
         List<List<LayoutEntry>> layoutSlots = new ArrayList<>(PowerHudConfig.layoutSlots);
@@ -253,6 +254,7 @@ public class PowerHudConfig {
 
             // Apply enum settings
             fpsMode = data.fpsMode;
+            boxStyle = data.boxStyle;
             inventoryMode = data.inventoryMode;
             
             // Apply integer settings
@@ -264,7 +266,8 @@ public class PowerHudConfig {
             yellowThresh = data.yellowThresh;
             fontIndex = data.fontIndex;
             titleColorIndex = data.titleColorIndex;
-            
+            oxygenOverlayY = data.oxygenOverlayY;
+
             // Apply layout settings
             hudOrder = data.hudOrder != null ? data.hudOrder : new ArrayList<>();
             layoutSlots = data.layoutSlots != null ? data.layoutSlots : new ArrayList<>(

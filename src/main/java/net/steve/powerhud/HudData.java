@@ -24,7 +24,7 @@ public class HudData {
     public static String cpuName = "Unknown CPU", gpuName = "Unknown GPU", displayInfo = "Unknown Display", entityCount = "-", particleCount = "-", chunkStats = "-", soundStats = "-", moveFlags = "-", effectList = "None";
     public static int fpsColor=0xFFFFFFFF, vitColor=0xFFFFFFFF, invColor=0xFFFFFFFF, invCount=0, oxyColor=0xFFFFFFFF, currentFps = 0, minFps = -1, maxFps = -1;
     public static float oxyPercent = 1.0f, avgFps = 0;
-    public static boolean[] invSlots = new boolean[27];
+    public static boolean[] invSlots = new boolean[36]; // 27 inventory + 9 hotbar
     public static ItemStack toolStack = ItemStack.EMPTY;
     public static String toolStr = "";
     public static List<Integer> fpsGraph = new ArrayList<>();
@@ -47,7 +47,18 @@ public class HudData {
             case FULL -> "FPS:" + currentFps + " AVG:" + (int)avgFps + " MIN:" + minFps + " MAX:" + maxFps + " (" + String.format("%.1f", frameTimeMs) + "ms)";
         };
         fpsColor = (currentFps < PowerHudConfig.redThresh ? 0xFFFF5555 : (currentFps < PowerHudConfig.orangeThresh ? 0xFFFFAA00 : (currentFps < PowerHudConfig.yellowThresh ? 0xFFFFFF55 : 0xFF55FF55)));
-        invCount = 0; for(int i=0; i<27; i++) { boolean has = !client.player.getInventory().main.get(i+9).isEmpty(); invSlots[i]=has; if(has) invCount++; }
+        // Inventory slots: 27 (3 rows of 9), hotbar: 9 (bottom row)
+        invCount = 0;
+        for(int i=0; i<27; i++) {
+            boolean has = !client.player.getInventory().main.get(i+9).isEmpty();
+            invSlots[i]=has;
+            if(has) invCount++;
+        }
+        // Hotbar (bottom row)
+        for(int i=0; i<9; i++) {
+            boolean has = !client.player.getInventory().main.get(i).isEmpty();
+            invSlots[27 + i] = has;
+        }
         invStr = switch(PowerHudConfig.inventoryMode) { case PERCENT -> (int)((invCount / 27.0) * 100) + "%"; case FRACTION -> invCount + "/27"; default -> invCount + " Slots"; };
         invColor = (invCount > 22) ? 0xFFFF5555 : (invCount > 15) ? 0xFFFFFF55 : 0xFF55FF55;
         BlockPos pos = client.player.getBlockPos(); coordsStr = pos.getX() + " " + pos.getY() + " " + pos.getZ();

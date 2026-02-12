@@ -77,6 +77,7 @@ public class HudConstants {
     public static final int INV_GRID_OFFSET = 11;
     public static final int INV_ROWS = 3;
     public static final int INV_COLS = 9;
+    public static final int INV_ROW_HEIGHT = 7; // Height per row in inventory grid
     public static final int INV_HEIGHT_TOTAL = 35;
     
     // Oxygen bar

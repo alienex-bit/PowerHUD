@@ -150,6 +150,21 @@ public class PowerHudConfigScreen extends Screen {
                 
                 addToggle(
                     rX, startY + leading,
+                    "Background",
+                    PowerHudConfig.boxStyle.toString(),
+                    "HUD element background style",
+                    b -> {
+                        PowerHudConfig.boxStyle = PowerHudConfig.BoxStyle.values()[
+                            (PowerHudConfig.boxStyle.ordinal() + 1) % PowerHudConfig.BoxStyle.values().length
+                        ];
+                        PowerHudConfig.save(); // Ensure config is saved immediately after change
+                        clearAndInit();
+                    },
+                    btnW, btnH
+                );
+
+                addToggle(
+                    rX, startY + (leading * 2),
                     "Data Color",
                     PowerHudConfig.COLOR_NAMES[PowerHudConfig.themeIndex],
                     "HUD data colour",
@@ -161,7 +176,7 @@ public class PowerHudConfigScreen extends Screen {
                 );
                 
                 addToggle(
-                    rX, startY + (leading * 2),
+                    rX, startY + (leading * 3),
                     "Title Color",
                     PowerHudConfig.COLOR_NAMES[PowerHudConfig.titleColorIndex],
                     "HUD title colour",
@@ -173,7 +188,7 @@ public class PowerHudConfigScreen extends Screen {
                 );
                 
                 addToggle(
-                    rX, startY + (leading * 3),
+                    rX, startY + (leading * 4),
                     "Bold Titles",
                     PowerHudConfig.boldTitles ? "ON" : "OFF",
                     "HUD title bold?",

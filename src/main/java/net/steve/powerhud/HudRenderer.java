@@ -169,17 +169,48 @@ public class HudRenderer implements HudRenderCallback {
         }
         // Special handling for inventory grid mode
         if (id.equals("INV") && PowerHudConfig.inventoryMode == PowerHudConfig.InventoryMode.GRID) {
+            boolean isCreative = false;
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client != null && client.player != null) {
+                isCreative = client.player.isCreative();
+            }
             int titleW = getWidth("Inventory", ren, PowerHudConfig.boldTitles);
-            int renderX = resolveX(x, Math.max(titleW, INV_GRID_WIDTH), sw);
+            int gridW = Math.max(titleW, INV_GRID_WIDTH);
+            int renderX = resolveX(x, gridW, sw);
+
+            // Calculate padding for centering grid within box
+            int boxW = gridW + 4;
+            int gridWActual = INV_COLS * INV_SLOT_SPACING;
+            int gridPad = (boxW - gridWActual) / 2;
+            int gridStartX = renderX + gridPad;
+            // Add extra background padding at the bottom
+            int extraPad = 8; // Increase as needed for more space
+            int boxRows = isCreative ? 1 : 4;
+            int boxH = boxRows * INV_ROW_HEIGHT + INV_GRID_OFFSET + 2 + extraPad;
+            if (PowerHudConfig.boxStyle != PowerHudConfig.BoxStyle.OFF) {
+                int alpha = switch (PowerHudConfig.boxStyle) {
+                    case FAINT -> 0x20;
+                    case LIGHT -> 0x40;
+                    case SUBTLE -> 0x60;
+                    case MEDIUM -> 0x80;
+                    case STRONG -> 0xA0;
+                    case DARK -> 0xC0;
+                    case SOLID -> 0xFF;
+                    default -> 0x60;
+                };
+                int boxColor = (alpha << 24) | 0x000000;
+                int boxX = renderX - 2;
+                int boxY = y - 1;
+                dc.fill(boxX, boxY, boxX + boxW, boxY + boxH, boxColor);
+            }
             drawStyledText(dc, ren, "Inventory", renderX, y, tColor, s, PowerHudConfig.boldTitles, now);
-
-            // Draw inventory grid
-            for (int r = 0; r < INV_ROWS; r++) {
-                for (int c = 0; c < INV_COLS; c++) {
-                    int i = r * INV_COLS + c;
-                    int sx = renderX + (int)(c * INV_SLOT_SPACING);
-                    int sy = y + INV_GRID_OFFSET + (int)(r * INV_SLOT_SPACING);
-
+            if (isCreative) {
+                // Draw hotbar row at the top, centered
+                int hotbarY = y + INV_GRID_OFFSET;
+                for (int c = 0; c < 9; c++) {
+                    int i = 27 + c;
+                    int sx = gridStartX + (int)(c * INV_SLOT_SPACING);
+                    int sy = hotbarY;
                     dc.fill(
                         sx,
                         sy,
@@ -188,8 +219,39 @@ public class HudRenderer implements HudRenderCallback {
                         HudData.invSlots[i] ? HudData.invColor : COLOR_BORDER_LIGHT
                     );
                 }
+                return;
+            } else {
+                // Draw inventory grid (top 3 rows), centered
+                for (int r = 0; r < 3; r++) {
+                    for (int c = 0; c < 9; c++) {
+                        int i = r * 9 + c;
+                        int sx = gridStartX + (int)(c * INV_SLOT_SPACING);
+                        int sy = y + INV_GRID_OFFSET + (int)(r * INV_SLOT_SPACING);
+                        dc.fill(
+                            sx,
+                            sy,
+                            sx + INV_SLOT_SIZE,
+                            sy + INV_SLOT_SIZE,
+                            HudData.invSlots[i] ? HudData.invColor : COLOR_BORDER_LIGHT
+                        );
+                    }
+                }
+                // Add 3 spaces (pixels) before hotbar
+                int hotbarY = y + INV_GRID_OFFSET + (int)(3 * INV_SLOT_SPACING) + 3;
+                for (int c = 0; c < 9; c++) {
+                    int i = 27 + c;
+                    int sx = gridStartX + (int)(c * INV_SLOT_SPACING);
+                    int sy = hotbarY;
+                    dc.fill(
+                        sx,
+                        sy,
+                        sx + INV_SLOT_SIZE,
+                        sy + INV_SLOT_SIZE,
+                        HudData.invSlots[i] ? HudData.invColor : COLOR_BORDER_LIGHT
+                    );
+                }
+                return;
             }
-            return;
         }
 
         // Standard line rendering
@@ -207,6 +269,26 @@ public class HudRenderer implements HudRenderCallback {
             && !line.value.isEmpty());
 
         if (shouldRender) {
+            // Draw background box if enabled
+            if (PowerHudConfig.boxStyle != PowerHudConfig.BoxStyle.OFF) {
+                int alpha = switch (PowerHudConfig.boxStyle) {
+                    case FAINT -> 0x20;
+                    case LIGHT -> 0x40;
+                    case SUBTLE -> 0x60;
+                    case MEDIUM -> 0x80;
+                    case STRONG -> 0xA0;
+                    case DARK -> 0xC0;
+                    case SOLID -> 0xFF;
+                    default -> 0x60;
+                };
+                int boxColor = (alpha << 24) | 0x000000; // Black background with variable alpha
+                int boxX = renderX - 2;
+                int boxY = y + hAdj - 1;
+                int boxW = totalW + 4;
+                int boxH = 10; // Approximate line height
+                dc.fill(boxX, boxY, boxX + boxW, boxY + boxH, boxColor);
+            }
+
             int curX = renderX;
 
             // Only render title if it's not empty
@@ -496,6 +578,26 @@ public class HudRenderer implements HudRenderCallback {
         };
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

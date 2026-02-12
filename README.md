@@ -1,4 +1,4 @@
-﻿﻿# PowerHUD
+﻿﻿﻿# PowerHUD
 
 A modern, highly customizable HUD overlay mod for Minecraft Fabric 1.21.4
 
@@ -167,7 +167,15 @@ Found a bug or need help?
 
 ## 📊 Version History
 
-- **v1.11.2** - Latest release (February 12, 2026)
+- **v1.11.3** - Latest release (February 12, 2026)
+  - **FIXED: Config Persistence** - Background style and oxygen overlay height now save/restore correctly
+  - **IMPROVED: Inventory HUD** - Equal left/right padding, centered grid within background box
+  - **IMPROVED: Creative Mode Inventory** - Hotbar row now renders at top with no gap
+  - **IMPROVED: Survival Mode Inventory** - Added 3px spacing between inventory rows and hotbar
+  - **REMOVED: Separator line** between inventory and hotbar for cleaner appearance
+  - All config settings now persist properly across game restarts
+
+- **v1.11.2** - Previous release (February 12, 2026)
   - **FIXED: Vanilla air bubble hiding** - Now properly hides all air bubble states (full, bursting, empty) when toggle is off
 
 - **v1.11.1** - Previous release (February 12, 2026)
