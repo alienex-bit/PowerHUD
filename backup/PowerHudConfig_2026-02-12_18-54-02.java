@@ -98,50 +98,29 @@ public class PowerHudConfig {
         public String id;
         public int spacerHeight;
         public int alignment;
-        public int x; // Absolute X position on screen
-        public int y; // Absolute Y position on screen
-        public boolean useFreeForm; // true = use x/y, false = use alignment/stack
-
-        // Constructor for free-form positioning (new default)
-        public LayoutEntry(String id, int x, int y, boolean isFreeForm) {
+        
+        public LayoutEntry(String id, int h, int align) {
             this.id = id;
-            this.spacerHeight = 0;
-            this.alignment = 0;
-            this.x = x;
-            this.y = y;
-            this.useFreeForm = isFreeForm;
-        }
-
-        // Convenience constructor for free-form
-        public static LayoutEntry freeForm(String id, int x, int y) {
-            return new LayoutEntry(id, x, y, true);
-        }
-
-        // Old constructor for backwards compatibility (alignment-based)
-        public static LayoutEntry aligned(String id, int spacerHeight, int alignment) {
-            LayoutEntry entry = new LayoutEntry(id, -1, -1, false);
-            entry.spacerHeight = spacerHeight;
-            entry.alignment = alignment;
-            return entry;
+            this.spacerHeight = h;
+            this.alignment = align;
         }
     }
     
     // Reset to default layout
     public static void resetToVanilla() {
         hudOrder.clear();
-        // Left side elements (x=10)
-        hudOrder.add(LayoutEntry.freeForm("XYZ", 10, 10));
-        hudOrder.add(LayoutEntry.freeForm("FACING", 10, 25));
-        hudOrder.add(LayoutEntry.freeForm("BIOME", 10, 40));
-        hudOrder.add(LayoutEntry.freeForm("TIME", 10, 55));
-        hudOrder.add(LayoutEntry.freeForm("VIT", 10, 70));
-        hudOrder.add(LayoutEntry.freeForm("BLOCK", 10, 85));
-        hudOrder.add(LayoutEntry.freeForm("GAMEMODE", 10, 100));
-        // Right side elements (will be calculated relative to screen width)
-        hudOrder.add(LayoutEntry.freeForm("FPS", -150, 10)); // negative = from right edge
-        hudOrder.add(LayoutEntry.freeForm("BLOCK_STATS", -150, 35));
-        hudOrder.add(LayoutEntry.freeForm("TOOL", -150, 50));
-        hudOrder.add(LayoutEntry.freeForm("INV", -150, 65));
+        hudOrder.add(new LayoutEntry("XYZ", 0, 0));
+        hudOrder.add(new LayoutEntry("FACING", 0, 0));
+        hudOrder.add(new LayoutEntry("BIOME", 0, 0));
+        hudOrder.add(new LayoutEntry("TIME", 0, 0));
+        hudOrder.add(new LayoutEntry("VIT", 0, 0));
+        hudOrder.add(new LayoutEntry("BLOCK", 0, 0));
+        hudOrder.add(new LayoutEntry("OXY", 0, 0));
+        hudOrder.add(new LayoutEntry("GAMEMODE", 0, 0));
+        hudOrder.add(new LayoutEntry("FPS", 0, 1));
+        hudOrder.add(new LayoutEntry("BLOCK_STATS", 0, 2));
+        hudOrder.add(new LayoutEntry("TOOL", 0, 2));
+        hudOrder.add(new LayoutEntry("INV", 0, 2));
         save();
     }
     

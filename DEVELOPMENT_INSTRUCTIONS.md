@@ -1,13 +1,14 @@
 # PowerHUD Development Instructions
 ## Project Overview
-PowerHUD is a Minecraft Fabric mod (v1.10.1) for Minecraft 1.21.4 that provides a customizable HUD overlay system.
+PowerHUD is a Minecraft Fabric mod (v1.11.0) for Minecraft 1.21.4 that provides a customizable HUD overlay system with free-form WYSIWYG positioning.
 ## Project Structure
 - **Source Code**: src/main/java/net/steve/powerhud/
 - **Resources**: src/main/resources/
 - **Build Output**: build/libs/
 - **Test Environment**: run/
+- **Backups**: backup/ (timestamped backups of major files)
 ## Version Management
-- **Current Version**: 1.10.1
+- **Current Version**: 1.11.0
 - **Version Files**: 
   - gradle.properties - Set mod_version=X.X.X (primary version source)
   - version.txt - Documentation reference
@@ -27,8 +28,8 @@ cd C:\Users\Steve\Documents\PH
 - HudRenderer.java - Main rendering logic
 - HudData.java - Data collection for HUD elements
 - HudOrderScreen.java - Drag-and-drop element ordering
-- HudConstants.java - UI constants and color definitions
-## Current Feature Set (v1.10.1)
+## Current Feature Set (v1.11.0)
+
 ### HUD Elements
 - **FPS Display** - Three modes: Minimal (FPS:xxx), Normal (FPS/AVG/MIN/MAX), Full (Normal + ms timing)
 - **Coordinates** (XYZ)
@@ -42,6 +43,14 @@ cd C:\Users\Steve\Documents\PH
 - **Oxygen Overlay** - Centered screen display with color-coded bar (NOT in HUD workbench)
 - **Block Statistics** (Mined/placed tracking)
 - **Gamemode Display**
+
+### WYSIWYG Positioning System (v1.11.0 - NEW!)
+- **Free-Form Drag & Drop** - Position elements ANYWHERE on screen with pixel-perfect precision
+- **Live Preview** - See exactly what your HUD looks like as you edit
+- **Palette System** - Available elements shown at bottom, drag to add, drag back to remove
+- **Negative Positioning** - Elements on right side use negative X (offset from right edge)
+- **No More Columns** - Elements are truly independent, not constrained to left/center/right stacks
+- **Persistent Positions** - All positions saved to config and restored on load
 ### Oxygen System (Special Implementation)
 - **Display**: Centered overlay 3/4 up screen with colored bar and text
 - **Colors**: GREEN (>60%), YELLOW (40-60%), ORANGE (20-40%), RED (<20%) - with light opacity
@@ -91,21 +100,42 @@ git commit -m "Description of changes"
 - Be descriptive and specific
 - Examples: "Refactor oxygen HUD to centered text overlay", "Bump version to 1.10.1", "Remove text effects and shadow features"
 ## Common Development Tasks
+
+### Using the WYSIWYG HUD Editor
+1. Open HUD Workbench from config screen (or press O → HUD Element Order)
+2. **Adding Elements**: Drag from palette at bottom to screen
+3. **Moving Elements**: Click and drag existing elements to new positions
+4. **Removing Elements**: Drag element back to palette area
+5. **Positioning**: 
+   - Positive X = pixels from left edge
+   - Negative X = pixels from right edge (automatically calculated)
+   - Y = pixels from top of screen
+6. Click "Done" to save positions
+
 ### Adding a New Color
 1. Add int value to PowerHudConfig.COLORS array
 2. Add name to PowerHudConfig.COLOR_NAMES array (same index)
 3. Ensure arrays stay synchronized
-### Adding a New HUD Element
+
+### Adding a New HUD Element to WYSIWYG System
 1. Add boolean toggle to PowerHudConfig
 2. Add data collection method to HudData (if needed)
-3. Add rendering logic to HudRenderer.renderHud()
+3. Add rendering logic to HudRenderer.renderElementAt()
 4. Add toggle button in PowerHudConfigScreen ELEMENTS case
-5. Add element to HudOrderScreen if moveable
-6. Test thoroughly
+5. Add element ID to HudOrderScreen.ALL_ELEMENTS array
+6. Update getElementWidth() and getElementHeight() in HudOrderScreen for proper sizing
+7. Test in workbench mode
+
 ### Modifying FPS Display
 - Three modes in PowerHudConfig.FpsMode enum: MINIMAL, NORMAL, FULL
-- Format strings in HudRenderer.renderHud() FPS section
+- Format strings in HudRenderer.renderElementAt() FPS section
 - Color thresholds: redThresh, orangeThresh, yellowThresh in config
+
+### Understanding the Position System
+- **LayoutEntry** stores: id, x, y, useFreeForm flag
+- **Creating entries**: Use `LayoutEntry.freeForm(id, x, y)` for new elements
+- **Negative X values**: Automatically converted to right-aligned at render time
+- **Backwards compatibility**: Old alignment-based entries auto-convert to free-form on load
 ## Testing Checklist
 - Build completes without errors: .\gradlew.bat build
 - Mod loads in Minecraft: .\gradlew.bat runClient

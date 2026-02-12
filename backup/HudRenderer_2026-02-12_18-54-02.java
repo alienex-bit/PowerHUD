@@ -104,22 +104,34 @@ public class HudRenderer implements HudRenderCallback {
         int theme = PowerHudConfig.COLORS[PowerHudConfig.themeIndex];
         float s = PowerHudConfig.hudScaleVert / SCALE_DIVISOR;
         
-        dc.getMatrices().push();
-        dc.getMatrices().scale(s, s, MATRIX_SCALE_Z);
-        int sw = (int)(client.getWindow().getScaledWidth() / s);
-        int sh = (int)(client.getWindow().getScaledHeight() / s);
-
-        long now = System.currentTimeMillis();
-        int tColor = PowerHudConfig.COLORS[PowerHudConfig.titleColorIndex];
-        int hAdj = (PowerHudConfig.fontIndex > 0) ? 1 : 0;
-
-        // Render each element at its absolute position
+        List<Renderable> lCol = new ArrayList<>();
+        List<Renderable> cCol = new ArrayList<>();
+        List<Renderable> rCol = new ArrayList<>();
+        
+        // Build columns from layout entries
         for (PowerHudConfig.LayoutEntry entry : PowerHudConfig.hudOrder) {
             // Skip oxygen - it's rendered as a standalone overlay
             if (entry.id.equals("OXY")) {
                 continue;
             }
 
+            if (entry.id.equals(TEXT_SPACE)) {
+                Renderable r = new Renderable(
+                    null,
+                    null,
+                    0,
+                    TEXT_SPACE,
+                    entry.alignment,
+                    entry.spacerHeight,
+                    true
+                );
+                
+                if (entry.alignment == ALIGN_LEFT) lCol.add(r);
+                else if (entry.alignment == ALIGN_CENTER) cCol.add(r);
+                else rCol.add(r);
+                continue;
+            }
+            
             boolean force = HudOrderScreen.isWorkbenchActive;
             if (!shouldShow(entry.id) && !force) continue;
             
@@ -129,102 +141,36 @@ public class HudRenderer implements HudRenderCallback {
                 line = new HudLineRaw(entry.id, TEXT_PREVIEW, theme);
             }
             
-            // Calculate absolute position
-            int x = entry.x;
-            if (x < 0) {
-                x = sw + x; // Negative = from right edge
-            }
-            int y = entry.y;
-
-            // Render element at position
-            renderElementAt(dc, ren, entry.id, line, x, y, tColor, theme, s, now, hAdj);
+            Renderable r = new Renderable(
+                line.title,
+                line.value,
+                line.valColor,
+                entry.id,
+                entry.alignment,
+                0,
+                false
+            );
+            
+            if (entry.alignment == ALIGN_LEFT) lCol.add(r);
+            else if (entry.alignment == ALIGN_CENTER) cCol.add(r);
+            else rCol.add(r);
         }
-
+        
+        // Render all columns
+        dc.getMatrices().push();
+        dc.getMatrices().scale(s, s, MATRIX_SCALE_Z);
+        int sw = (int)(client.getWindow().getScaledWidth() / s);
+        
+        renderCol(dc, ren, lCol, sw, theme, s, ALIGN_LEFT);
+        renderCol(dc, ren, cCol, sw, theme, s, ALIGN_CENTER);
+        renderCol(dc, ren, rCol, sw, theme, s, ALIGN_RIGHT);
+        
         // Render oxygen as standalone centered overlay
         if (PowerHudConfig.showOxygen) {
             renderOxygenOverlay(dc, ren, sw, s, theme);
         }
 
         dc.getMatrices().pop();
-    }
-
-    private void renderElementAt(
-        DrawContext dc,
-        TextRenderer ren,
-        String id,
-        HudLineRaw line,
-        int x,
-        int y,
-        int tColor,
-        int theme,
-        float s,
-        long now,
-        int hAdj
-    ) {
-        // Special handling for inventory grid mode
-        if (id.equals("INV") && PowerHudConfig.inventoryMode == PowerHudConfig.InventoryMode.GRID) {
-            drawStyledText(dc, ren, "Inventory", x, y, tColor, s, PowerHudConfig.boldTitles, now);
-
-            // Draw inventory grid
-            for (int r = 0; r < INV_ROWS; r++) {
-                for (int c = 0; c < INV_COLS; c++) {
-                    int i = r * INV_COLS + c;
-                    int sx = x + (int)(c * INV_SLOT_SPACING);
-                    int sy = y + INV_GRID_OFFSET + (int)(r * INV_SLOT_SPACING);
-
-                    dc.fill(
-                        sx,
-                        sy,
-                        sx + INV_SLOT_SIZE,
-                        sy + INV_SLOT_SIZE,
-                        HudData.invSlots[i] ? HudData.invColor : COLOR_BORDER_LIGHT
-                    );
-                }
-            }
-            return;
-        }
-
-        // Standard line rendering
-        int valW = getWidth(line.value, ren, false);
-        int dotW = (id.equals("FPS") && PowerHudConfig.showFpsDot) ? HUD_DOT_WIDTH : 0;
-        int iconW = (id.equals("TOOL") && !HudData.toolStack.isEmpty()) ? HUD_ICON_WIDTH : 0;
-        int titleW = line.title.isEmpty() ? 0 : getWidth(line.title + ": ", ren, PowerHudConfig.boldTitles);
-
-        boolean shouldRender = HudOrderScreen.isWorkbenchActive
-            || (!(id.equals("BLOCK") && line.value.equals(TEXT_AIR))
-            && !(id.equals("TOOL") && line.value.isEmpty())
-            && !line.value.isEmpty());
-
-        if (shouldRender) {
-            int curX = x;
-
-            // Only render title if it's not empty
-            if (!line.title.isEmpty()) {
-                drawStyledText(
-                    dc,
-                    ren,
-                    line.title + ": ",
-                    curX,
-                    y + hAdj,
-                    tColor,
-                    s,
-                    PowerHudConfig.boldTitles,
-                    now
-                );
-                curX += titleW;
-            }
-
-            if (dotW > 0) {
-                drawFpsDot(dc, ren, curX, y + hAdj, now);
-                curX += dotW;
-            }
-
-            drawStyledText(dc, ren, line.value, curX, y + hAdj, line.valColor, s, false, now);
-
-            if (iconW > 0) {
-                dc.drawItem(HudData.toolStack, curX + valW + HUD_ICON_OFFSET, y + hAdj - HUD_ICON_OFFSET);
-            }
-        }
     }
 
     private void renderCol(

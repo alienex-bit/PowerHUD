@@ -14,187 +14,225 @@ public class HudOrderScreen extends Screen {
     private final Screen parent;
     private final List<PowerHudConfig.LayoutEntry> tempOrder;
     public static boolean isWorkbenchActive = false;
-    private boolean skipNextRender = false;
+
+    // Drag state
+    private PowerHudConfig.LayoutEntry draggedElement = null;
+    private int dragOffsetX = 0;
+    private int dragOffsetY = 0;
+    private boolean isDragging = false;
+
+    // Palette state
+    private static final int PALETTE_HEIGHT = 80;
+    private static final int PALETTE_Y_OFFSET = 100;
+    private static final int ELEMENT_BUTTON_WIDTH = 80;
+    private static final int ELEMENT_BUTTON_HEIGHT = 20;
+    private static final int ELEMENT_SPACING = 5;
+
+    // Available elements that can be added
+    private static final String[] ALL_ELEMENTS = {
+        "FPS", "XYZ", "FACING", "BIOME", "TIME", "VIT",
+        "BLOCK", "TOOL", "INV", "GAMEMODE", "BLOCK_STATS"
+    };
 
     public HudOrderScreen(Screen parent) {
-        super(Text.literal("HUD Workbench"));
+        super(Text.literal("HUD Workbench - WYSIWYG Editor"));
         this.parent = parent;
-        this.tempOrder = dedupe(new ArrayList<>(PowerHudConfig.hudOrder));
-    }
-
-    private List<PowerHudConfig.LayoutEntry> dedupe(List<PowerHudConfig.LayoutEntry> entries) {
-        LinkedHashMap<String, PowerHudConfig.LayoutEntry> map = new LinkedHashMap<>();
-        for (PowerHudConfig.LayoutEntry e : entries) {
-            if (TEXT_SPACE.equals(e.id)) {
-                String sid = TEXT_SPACE + "_" + java.util.UUID.randomUUID().toString();
-                map.put(sid, new PowerHudConfig.LayoutEntry(TEXT_SPACE, e.spacerHeight, e.alignment));
+        this.tempOrder = new ArrayList<>();
+        // Deep copy existing layout
+        for (PowerHudConfig.LayoutEntry entry : PowerHudConfig.hudOrder) {
+            if (entry.useFreeForm) {
+                tempOrder.add(PowerHudConfig.LayoutEntry.freeForm(entry.id, entry.x, entry.y));
             } else {
-                map.put(e.id, new PowerHudConfig.LayoutEntry(e.id, e.spacerHeight, e.alignment));
+                // Convert old alignment-based to free-form
+                int x = calculateXFromAlignment(entry.alignment);
+                int y = tempOrder.stream()
+                    .filter(e -> e.alignment == entry.alignment)
+                    .mapToInt(e -> e.y + 15)
+                    .max()
+                    .orElse(10);
+                tempOrder.add(PowerHudConfig.LayoutEntry.freeForm(entry.id, x, y));
             }
         }
-        return new ArrayList<>(map.values());
+    }
+
+    private int calculateXFromAlignment(int alignment) {
+        return switch(alignment) {
+            case 0 -> 10; // LEFT
+            case 1 -> -200; // CENTER (will be calculated at render)
+            case 2 -> -150; // RIGHT
+            default -> 10;
+        };
     }
 
     @Override
     protected void init() {
-        skipNextRender = true;
         isWorkbenchActive = true;
         this.clearChildren();
         
-        int cw = this.width / 3;
-        int sy = UI_COLUMN_START_Y;
-        int eh = BUTTON_HEIGHT_ELEMENT;
-        
-        renderCol(ALIGN_LEFT, 10, sy, cw - 20, eh);
-        renderCol(ALIGN_CENTER, cw + 10, sy, cw - 20, eh);
-        renderCol(ALIGN_RIGHT, (cw * 2) + 10, sy, cw - 20, eh);
-        
-        int slotY = this.height - UI_BOTTOM_OFFSET;
-        
-        addDrawableChild(ButtonWidget.builder(Text.literal("Reset to Default"), b -> {
+        int bottomY = this.height - PALETTE_Y_OFFSET;
+
+        // Reset button
+        addDrawableChild(ButtonWidget.builder(Text.literal("Reset Default"), b -> {
             PowerHudConfig.resetToVanilla();
             tempOrder.clear();
-            tempOrder.addAll(dedupe(PowerHudConfig.hudOrder));
-            init();
-        }).dimensions(this.width/2 - 160, slotY + SPACING_HUD_TOP, BUTTON_WIDTH_ACTION, BUTTON_HEIGHT_TALL)
+            for (PowerHudConfig.LayoutEntry entry : PowerHudConfig.hudOrder) {
+                tempOrder.add(PowerHudConfig.LayoutEntry.freeForm(entry.id, entry.x, entry.y));
+            }
+        }).dimensions(this.width/2 - 200, bottomY, 90, 20)
           .tooltip(Tooltip.of(Text.literal("Restore default layout")))
           .build());
         
+        // Clear all button
+        addDrawableChild(ButtonWidget.builder(Text.literal("Clear All"), b -> {
+            tempOrder.clear();
+        }).dimensions(this.width/2 - 100, bottomY, 90, 20)
+          .tooltip(Tooltip.of(Text.literal("Remove all elements")))
+          .build());
+
+        // Done button
         addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> {
             PowerHudConfig.hudOrder.clear();
-            PowerHudConfig.hudOrder.addAll(dedupe(tempOrder));
+            PowerHudConfig.hudOrder.addAll(tempOrder);
             PowerHudConfig.save();
             isWorkbenchActive = false;
             this.client.setScreen(parent);
-        }).dimensions(this.width / 2 + SCREEN_CENTER_OFFSET + 45, slotY + SPACING_HUD_TOP, BUTTON_WIDTH_SMALL, BUTTON_HEIGHT_TALL)
-          .tooltip(Tooltip.of(Text.literal("Save and Exit")))
+        }).dimensions(this.width / 2 + 10, bottomY, 90, 20)
+          .tooltip(Tooltip.of(Text.literal("Save and exit")))
+          .build());
+
+        // Cancel button
+        addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), b -> {
+            isWorkbenchActive = false;
+            this.client.setScreen(parent);
+        }).dimensions(this.width / 2 + 110, bottomY, 90, 20)
+          .tooltip(Tooltip.of(Text.literal("Exit without saving")))
           .build());
     }
 
-    private void renderCol(int align, int x, int y, int w, int h) {
-        List<PowerHudConfig.LayoutEntry> items = new ArrayList<>();
-        List<Integer> indices = new ArrayList<>();
-        
-        for (int i = 0; i < tempOrder.size(); i++) {
-            PowerHudConfig.LayoutEntry entry = tempOrder.get(i);
-            // Skip oxygen - it's now a standalone overlay, not part of columns
-            if (entry.id.equals("OXY")) {
-                continue;
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 0) { // Left click
+            // Check if clicking on an existing element
+            for (PowerHudConfig.LayoutEntry entry : tempOrder) {
+                int x = calculateAbsoluteX(entry.x);
+                int y = entry.y;
+                int width = getElementWidth(entry.id);
+                int height = getElementHeight(entry.id);
+
+                if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+                    // Start dragging this element
+                    draggedElement = entry;
+                    dragOffsetX = (int)(mouseX - x);
+                    dragOffsetY = (int)(mouseY - y);
+                    isDragging = true;
+                    return true;
+                }
             }
-            if (entry.alignment == align) {
-                items.add(entry);
-                indices.add(i);
+
+            // Check if clicking on palette elements
+            int paletteY = this.height - PALETTE_HEIGHT - 30;
+            int paletteX = (this.width - (ALL_ELEMENTS.length * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING))) / 2;
+
+            for (int i = 0; i < ALL_ELEMENTS.length; i++) {
+                String elementId = ALL_ELEMENTS[i];
+                int btnX = paletteX + i * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING);
+                int btnY = paletteY + 20;
+
+                // Skip if element already placed
+                boolean alreadyPlaced = tempOrder.stream().anyMatch(e -> e.id.equals(elementId));
+                if (alreadyPlaced) continue;
+
+                if (mouseX >= btnX && mouseX <= btnX + ELEMENT_BUTTON_WIDTH &&
+                    mouseY >= btnY && mouseY <= btnY + ELEMENT_BUTTON_HEIGHT) {
+                    // Create new element and start dragging it
+                    PowerHudConfig.LayoutEntry newEntry = PowerHudConfig.LayoutEntry.freeForm(
+                        elementId,
+                        (int)mouseX - 40,
+                        (int)mouseY - 10
+                    );
+                    tempOrder.add(newEntry);
+                    draggedElement = newEntry;
+                    dragOffsetX = 40;
+                    dragOffsetY = 10;
+                    isDragging = true;
+                    return true;
+                }
             }
         }
         
-        int cy = y;
-        for (int i = 0; i < items.size(); i++) {
-            final int lIdx = indices.get(i);
-            final int locIdx = i;
-            PowerHudConfig.LayoutEntry ent = items.get(i);
-            String label = ent.id.equals(TEXT_SPACE) ? "Spacer" : ent.id;
-            
-            String tip = switch(ent.id) {
-                case "XYZ" -> "Co-Ordinates Element";
-                case "FACING" -> "Facing Direction Element";
-                case "BIOME" -> "Biome Type Element";
-                case "TIME" -> "Time Until Element";
-                case "VIT" -> "Current Vitality Element";
-                case "BLOCK" -> "Block Type Element";
-                case "OXY" -> "Oxygen Depletion Element";
-                case "TOOL" -> "Recommend Tool Element";
-                case "INV" -> "Inventory Display Element";
-                case "FPS" -> "Frames Per Second Element";
-                case "GAMEMODE" -> "Current Gamemode Element";
-                case "BLOCK_STATS" -> "Block Stats Element";
-                case "SPACE" -> "Vertical Space Element";
-                default -> ent.id + " Element";
-            };
-            
-            addDrawableChild(ButtonWidget.builder(Text.literal(label), b -> {})
-                .dimensions(x, cy, w - 100, h - 1)
-                .tooltip(Tooltip.of(Text.literal(tip)))
-                .build()).active = false;
-            
-            int cx = x + w - 98;
-            
-            if (align > ALIGN_LEFT) {
-                addDrawableChild(ButtonWidget.builder(Text.literal("<"), b -> {
-                    ent.alignment--;
-                    init();
-                }).dimensions(cx, cy, BUTTON_WIDTH_TINY, h - 1)
-                  .tooltip(Tooltip.of(Text.literal("Move Left")))
-                  .build());
-            }
-            
-            if (align < ALIGN_RIGHT) {
-                addDrawableChild(ButtonWidget.builder(Text.literal(">"), b -> {
-                    ent.alignment++;
-                    init();
-                }).dimensions(cx + BUTTON_HEIGHT_ELEMENT, cy, BUTTON_WIDTH_TINY, h - 1)
-                  .tooltip(Tooltip.of(Text.literal("Move Right")))
-                  .build());
-            }
-            
-            addDrawableChild(ButtonWidget.builder(Text.literal("U"), b -> {
-                move(align, locIdx, -1);
-                init();
-            }).dimensions(cx + 30, cy, BUTTON_WIDTH_COMPACT, h - 1)
-              .tooltip(Tooltip.of(Text.literal("Move UP")))
-              .build());
-            
-            addDrawableChild(ButtonWidget.builder(Text.literal("D"), b -> {
-                move(align, locIdx, 1);
-                init();
-            }).dimensions(cx + 46, cy, BUTTON_WIDTH_COMPACT, h - 1)
-              .tooltip(Tooltip.of(Text.literal("Move DOWN")))
-              .build());
-            
-            addDrawableChild(ButtonWidget.builder(Text.literal("+"), b -> {
-                tempOrder.add(lIdx + 1, new PowerHudConfig.LayoutEntry(TEXT_SPACE, 10, align));
-                init();
-            }).dimensions(cx + 62, cy, BUTTON_WIDTH_COMPACT, h - 1)
-              .tooltip(Tooltip.of(Text.literal("Add Spacer")))
-              .build());
-            
-            addDrawableChild(ButtonWidget.builder(Text.literal("x"), b -> {
-                tempOrder.remove(lIdx);
-                init();
-            }).dimensions(cx + 78, cy, BUTTON_WIDTH_COMPACT, h - 1)
-              .tooltip(Tooltip.of(Text.literal("Remove")))
-              .build());
-            
-            cy += h + 1;
-        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    private void move(int align, int locIdx, int dir) {
-        List<Integer> colIdx = new ArrayList<>();
-        for (int i = 0; i < tempOrder.size(); i++) {
-            if (tempOrder.get(i).alignment == align) {
-                colIdx.add(i);
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (button == 0 && isDragging) {
+            // Check if dropped in palette area (remove element)
+            int paletteY = this.height - PALETTE_HEIGHT - 30;
+            if (mouseY >= paletteY) {
+                tempOrder.remove(draggedElement);
             }
+
+            isDragging = false;
+            draggedElement = null;
+            return true;
         }
-        
-        int target = locIdx + dir;
-        if (target >= 0 && target < colIdx.size()) {
-            Collections.swap(tempOrder, colIdx.get(locIdx), colIdx.get(target));
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if (isDragging && draggedElement != null) {
+            // Update position
+            int newX = (int)mouseX - dragOffsetX;
+            int newY = (int)mouseY - dragOffsetY;
+
+            // Handle negative X (right-aligned elements)
+            if (newX > this.width / 2) {
+                draggedElement.x = newX - this.width; // Store as negative offset from right
+            } else {
+                draggedElement.x = newX;
+            }
+
+            draggedElement.y = Math.max(0, Math.min(this.height - PALETTE_HEIGHT - 50, newY));
+            return true;
         }
+        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+    }
+
+    private int calculateAbsoluteX(int x) {
+        if (x < 0) {
+            return this.width + x; // Negative = from right edge
+        }
+        return x;
+    }
+
+    private int getElementWidth(String id) {
+        // Estimate width based on element type
+        return switch(id) {
+            case "INV" -> 200;
+            case "XYZ" -> 150;
+            case "FPS" -> PowerHudConfig.fpsMode == PowerHudConfig.FpsMode.FULL ? 180 : 120;
+            case "BLOCK_STATS" -> 160;
+            default -> 120;
+        };
+    }
+
+    private int getElementHeight(String id) {
+        // Estimate height based on element type
+        return switch(id) {
+            case "INV" -> 60;
+            default -> 12;
+        };
     }
 
     @Override
     public void render(DrawContext dc, int mx, int my, float t) {
-        if (skipNextRender) {
-            skipNextRender = false;
-            this.renderBackground(dc, mx, my, t);
-            dc.fill(0, 0, this.width, this.height, COLOR_BACKGROUND_OVERLAY);
-            super.render(dc, mx, my, t);
-            return;
-        }
-        
         this.renderBackground(dc, mx, my, t);
-        dc.fill(0, 0, this.width, this.height, COLOR_BACKGROUND_OVERLAY);
-        
+
+        // Semi-transparent overlay
+        dc.fill(0, 0, this.width, this.height, 0x80000000);
+
+        // Render live HUD preview with current positions
         List<PowerHudConfig.LayoutEntry> backup = PowerHudConfig.hudOrder;
         PowerHudConfig.hudOrder = tempOrder;
         
@@ -202,13 +240,63 @@ public class HudOrderScreen extends Screen {
         
         PowerHudConfig.hudOrder = backup;
         
-        int cw = this.width / 3;
-        dc.drawCenteredTextWithShadow(textRenderer, "LEFT STACK", cw / 2, UI_HEADER_Y, COLOR_TEXT_WHITE);
-        dc.drawCenteredTextWithShadow(textRenderer, "CENTER STACK", this.width / 2, UI_HEADER_Y, COLOR_TEXT_WHITE);
-        dc.drawCenteredTextWithShadow(textRenderer, "RIGHT STACK", (this.width - cw / 2), UI_HEADER_Y, COLOR_TEXT_WHITE);
-        dc.fill(cw, UI_SEPARATOR_Y, cw + 1, this.height - UI_BOTTOM_OFFSET, COLOR_SEPARATOR);
-        dc.fill(cw * 2, UI_SEPARATOR_Y, cw * 2 + 1, this.height - UI_BOTTOM_OFFSET, COLOR_SEPARATOR);
-        
+        // Highlight elements being hovered or dragged
+        for (PowerHudConfig.LayoutEntry entry : tempOrder) {
+            if (entry == draggedElement && isDragging) continue; // Don't highlight dragged element in place
+
+            int x = calculateAbsoluteX(entry.x);
+            int y = entry.y;
+            int width = getElementWidth(entry.id);
+            int height = getElementHeight(entry.id);
+
+            boolean hovered = mx >= x && mx <= x + width && my >= y && my <= y + height;
+
+            if (hovered) {
+                // Draw hover outline
+                dc.fill(x - 2, y - 2, x + width + 2, y - 1, 0xFFFFFFFF);
+                dc.fill(x - 2, y + height + 1, x + width + 2, y + height + 2, 0xFFFFFFFF);
+                dc.fill(x - 2, y - 1, x - 1, y + height + 1, 0xFFFFFFFF);
+                dc.fill(x + width + 1, y - 1, x + width + 2, y + height + 1, 0xFFFFFFFF);
+            }
+        }
+
+        // Draw dragged element at cursor
+        if (isDragging && draggedElement != null) {
+            int dragX = (int)mx - dragOffsetX;
+            int dragY = (int)my - dragOffsetY;
+            int width = getElementWidth(draggedElement.id);
+            int height = getElementHeight(draggedElement.id);
+
+            // Draw semi-transparent box
+            dc.fill(dragX, dragY, dragX + width, dragY + height, 0x8800FF00);
+            dc.drawCenteredTextWithShadow(this.textRenderer, draggedElement.id, dragX + width/2, dragY + height/2 - 4, 0xFFFFFFFF);
+        }
+
+        // Draw palette area at bottom
+        int paletteY = this.height - PALETTE_HEIGHT - 30;
+        dc.fill(0, paletteY, this.width, this.height, 0xCC222222);
+        dc.drawCenteredTextWithShadow(this.textRenderer, "Available Elements (Drag to add)", this.width / 2, paletteY + 5, 0xFFFFFFFF);
+
+        // Draw palette elements
+        int paletteX = (this.width - (ALL_ELEMENTS.length * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING))) / 2;
+        for (int i = 0; i < ALL_ELEMENTS.length; i++) {
+            String elementId = ALL_ELEMENTS[i];
+            int btnX = paletteX + i * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING);
+            int btnY = paletteY + 20;
+
+            boolean alreadyPlaced = tempOrder.stream().anyMatch(e -> e.id.equals(elementId));
+            int color = alreadyPlaced ? 0xFF333333 : 0xFF555555;
+
+            dc.fill(btnX, btnY, btnX + ELEMENT_BUTTON_WIDTH, btnY + ELEMENT_BUTTON_HEIGHT, color);
+            int textColor = alreadyPlaced ? 0xFF666666 : 0xFFFFFFFF;
+            dc.drawCenteredTextWithShadow(this.textRenderer, elementId, btnX + ELEMENT_BUTTON_WIDTH/2, btnY + 6, textColor);
+        }
+
+        // Instructions
+        dc.drawCenteredTextWithShadow(this.textRenderer,
+            "Drag elements to position • Drop in palette to remove • Right side = negative X offset",
+            this.width / 2, 10, 0xFFAAAAAA);
+
         super.render(dc, mx, my, t);
     }
 

@@ -69,13 +69,14 @@ Press \O\ in-game to open the configuration screen.
 ### Available Options
 - **Toggle Elements** - Show/hide individual HUD components
 - **Font Selection** - Choose from 9 custom monospace fonts
-- **Color Themes** - Select preset color schemes or customize
-- **Text Effects** - Apply shimmer or chroma effects
+- **Color Customization** - Select from 20+ colors for text and data
+- **Bold Titles** - Toggle bold formatting for element titles
 - **Layout & Alignment** - Position elements anywhere on screen
-- **Background Style** - Adjust transparency and style
-- **Scaling** - Adjust HUD size (50% - 200%)
-- **Line Spacing** - Control vertical spacing between elements
+- **Scaling** - Adjust HUD size
 - **HUD Order** - Reorder elements via drag-and-drop interface
+- **FPS Tweaks** - Configure display mode (Minimal/Normal/Full), thresholds, and status indicator
+- **Inventory Tweaks** - Choose display style (Percent/Value/Boxes)
+- **Oxygen Settings** - Adjust overlay position and toggle vanilla air bubbles
 
 ## 🖼️ Screenshots
 
@@ -144,11 +145,15 @@ Found a bug or need help?
 
 ## 📊 Version History
 
-- **v1.9.99** - Current development version
-  - Dynamic versioning system
-  - Enhanced configuration options
-  - Multiple font support
-  - Custom F3 debug screen
+- **v1.10.1** - Latest release (February 2026)
+  - Refactored oxygen display to centered overlay with color-coded bars
+  - Removed text effects (shimmer, chroma) for cleaner performance
+  - Removed background styling feature for simplified design
+  - Removed shadow and soft corners features
+  - Expanded color palette to 20+ options
+  - Improved FPS display modes (Minimal/Normal/Full)
+  - Enhanced configuration screen
+  - Version now auto-updates in About screen
 
 ## 🙏 Acknowledgments
 
