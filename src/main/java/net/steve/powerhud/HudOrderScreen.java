@@ -89,70 +89,48 @@ public class HudOrderScreen extends Screen {
         isWorkbenchActive = true;
         this.clearChildren();
         
-        int bottomY = this.height - PALETTE_HEIGHT - 45; // Moved up higher
+        int bottomY = this.height - PALETTE_HEIGHT - 35;
 
-        // Action buttons row 1
-        addDrawableChild(ButtonWidget.builder(Text.literal("Reset Default"), b -> {
+        // Action buttons - centered and smaller
+        int btnWidth = 80;
+        int btnSpacing = 5;
+        int totalWidth = (btnWidth * 4) + (btnSpacing * 3);
+        int startX = (this.width - totalWidth) / 2;
+
+        addDrawableChild(ButtonWidget.builder(Text.literal("Reset"), b -> {
             PowerHudConfig.resetToVanilla();
             tempOrder.clear();
             for (PowerHudConfig.LayoutEntry entry : PowerHudConfig.hudOrder) {
                 tempOrder.add(PowerHudConfig.LayoutEntry.freeForm(entry.id, entry.x, entry.y));
             }
-        }).dimensions(this.width/2 - 280, bottomY, 85, 20)
+        }).dimensions(startX, bottomY, btnWidth, 18)
           .tooltip(Tooltip.of(Text.literal("Restore default layout")))
           .build());
         
         addDrawableChild(ButtonWidget.builder(Text.literal("Clear All"), b -> {
             tempOrder.clear();
-        }).dimensions(this.width/2 - 190, bottomY, 85, 20)
+        }).dimensions(startX + btnWidth + btnSpacing, bottomY, btnWidth, 18)
           .tooltip(Tooltip.of(Text.literal("Remove all elements")))
           .build());
 
-        addDrawableChild(ButtonWidget.builder(Text.literal("Snap Left"), b -> snapSelected(10))
-            .dimensions(this.width/2 - 100, bottomY, 85, 20)
-            .tooltip(Tooltip.of(Text.literal("Snap dragged element to left side")))
-            .build());
-
-        addDrawableChild(ButtonWidget.builder(Text.literal("Snap Center"), b -> snapSelected(0))
-            .dimensions(this.width/2 - 10, bottomY, 85, 20)
-            .tooltip(Tooltip.of(Text.literal("Snap dragged element to center")))
-            .build());
-
-        addDrawableChild(ButtonWidget.builder(Text.literal("Snap Right"), b -> snapSelected(-150))
-            .dimensions(this.width/2 + 80, bottomY, 85, 20)
-            .tooltip(Tooltip.of(Text.literal("Snap dragged element to right side")))
-            .build());
-
-        // Action buttons row 2
         addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> {
             PowerHudConfig.hudOrder.clear();
             PowerHudConfig.hudOrder.addAll(tempOrder);
             PowerHudConfig.save();
             isWorkbenchActive = false;
             this.client.setScreen(parent);
-        }).dimensions(this.width / 2 - 95, bottomY + 25, 90, 20)
+        }).dimensions(startX + (btnWidth + btnSpacing) * 2, bottomY, btnWidth, 18)
           .tooltip(Tooltip.of(Text.literal("Save and exit")))
           .build());
 
         addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), b -> {
             isWorkbenchActive = false;
             this.client.setScreen(parent);
-        }).dimensions(this.width / 2 + 5, bottomY + 25, 90, 20)
+        }).dimensions(startX + (btnWidth + btnSpacing) * 3, bottomY, btnWidth, 18)
           .tooltip(Tooltip.of(Text.literal("Exit without saving")))
           .build());
     }
 
-    private void snapSelected(int targetX) {
-        if (draggedElement != null && isDragging) {
-            if (targetX == 0) {
-                // Center snap - calculate based on element width
-                int elementWidth = getElementWidth(draggedElement.id);
-                draggedElement.x = -(elementWidth / 2);
-            } else {
-                draggedElement.x = targetX;
-            }
-        }
-    }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -230,15 +208,22 @@ public class HudOrderScreen extends Screen {
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         if (isDragging && draggedElement != null) {
-            // Update position
+            // Update position with auto-snap to left/center/right
             int newX = (int)mouseX - dragOffsetX;
             int newY = (int)mouseY - dragOffsetY;
 
-            // Handle negative X (right-aligned elements)
-            if (newX > this.width / 2) {
-                draggedElement.x = newX - this.width; // Store as negative offset from right
+            // Auto-snap based on horizontal position
+            int screenThird = this.width / 3;
+            if (newX < screenThird) {
+                // Left zone - snap to left
+                draggedElement.x = 10;
+            } else if (newX < screenThird * 2) {
+                // Center zone - snap to center
+                int elementWidth = getElementWidth(draggedElement.id);
+                draggedElement.x = -(elementWidth / 2);
             } else {
-                draggedElement.x = newX;
+                // Right zone - snap to right
+                draggedElement.x = -150;
             }
 
             draggedElement.y = Math.max(0, Math.min(this.height - PALETTE_HEIGHT - 50, newY));
@@ -308,22 +293,26 @@ public class HudOrderScreen extends Screen {
             }
         }
 
-        // Draw dragged element at cursor
+        // Draw dragged element at cursor (showing where it will snap)
         if (isDragging && draggedElement != null) {
-            int dragX = (int)mx - dragOffsetX;
-            int dragY = (int)my - dragOffsetY;
+            int snapX = calculateAbsoluteX(draggedElement.x);
+            int snapY = draggedElement.y;
             int width = getElementWidth(draggedElement.id);
             int height = getElementHeight(draggedElement.id);
 
-            // Draw semi-transparent box
-            dc.fill(dragX, dragY, dragX + width, dragY + height, 0x8800FF00);
-            dc.drawCenteredTextWithShadow(this.textRenderer, draggedElement.id, dragX + width/2, dragY + height/2 - 4, 0xFFFFFFFF);
+            // Draw semi-transparent box at snap position
+            dc.fill(snapX, snapY, snapX + width, snapY + height, 0x8800FF00);
+            dc.drawCenteredTextWithShadow(this.textRenderer, draggedElement.id, snapX + width/2, snapY + height/2 - 4, 0xFFFFFFFF);
         }
 
         // Draw palette area at bottom
         int paletteY = this.height - PALETTE_HEIGHT;
         dc.fill(0, paletteY, this.width, this.height, 0xCC222222);
-        dc.drawCenteredTextWithShadow(this.textRenderer, "Available Elements (Drag to add)", this.width / 2, paletteY + 5, 0xFFFFFFFF);
+
+        // Instructions text just above palette elements
+        dc.drawCenteredTextWithShadow(this.textRenderer,
+            "Drag elements to position • Left/Center/Right zones snap automatically",
+            this.width / 2, paletteY + 5, 0xFFAAAAAA);
 
         // Draw palette elements in multi-row grid
         int totalWidth = ELEMENTS_PER_ROW * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING);
@@ -352,11 +341,6 @@ public class HudOrderScreen extends Screen {
                 hoveredPaletteElement = PowerHudConfig.LayoutEntry.freeForm(elementId, 0, 0);
             }
         }
-
-        // Instructions
-        dc.drawCenteredTextWithShadow(this.textRenderer,
-            "Drag elements to position • Drop in palette to remove • Use Snap buttons for quick alignment",
-            this.width / 2, 10, 0xFFAAAAAA);
 
         super.render(dc, mx, my, t);
 
