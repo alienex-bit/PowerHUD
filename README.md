@@ -1,4 +1,4 @@
-﻿# PowerHUD
+﻿﻿# PowerHUD
 
 A modern, highly customizable HUD overlay mod for Minecraft Fabric 1.21.4
 
@@ -29,13 +29,12 @@ A modern, highly customizable HUD overlay mod for Minecraft Fabric 1.21.4
 
 ### 🎨 Customization
 - **9 Custom Fonts** - JetBrains Mono, Fira Code, Roboto Mono, Cascadia Code, Source Code Pro, Comic Mono, Monofur, Ubuntu Mono, Inter Mono
-- **Text Effects** - Shimmer, Chroma, or classic styles
-- **Multiple Color Themes** - Choose from preset color schemes
-- **Flexible Layout** - Position elements left, center, or right-aligned
-- **Background Styles** - Mist, Haze, Dusk, Obsidian, Solid, or Off
-- **Adjustable Scaling** - Resize HUD elements to your preference
-- **Custom Spacing** - Control line spacing and element gaps
-- **HUD Reordering** - Drag-and-drop element arrangement
+- **20+ Color Themes** - Comprehensive color palette for text and data
+- **WYSIWYG HUD Workbench** - Visual drag-and-drop editor with live preview
+- **Zone-Based Snapping** - Elements auto-snap to left, center, or right zones
+- **Spacer Elements** - Add flexible spacing between HUD elements
+- **Adjustable Scaling** - Resize HUD elements to your preference (works at any scale)
+- **Bold Title Toggle** - Enable/disable bold formatting for element titles
 
 ## 🎮 Default Keybindings
 
@@ -71,12 +70,15 @@ Press \O\ in-game to open the configuration screen.
 - **Font Selection** - Choose from 9 custom monospace fonts
 - **Color Customization** - Select from 20+ colors for text and data
 - **Bold Titles** - Toggle bold formatting for element titles
-- **Layout & Alignment** - Position elements anywhere on screen
-- **Scaling** - Adjust HUD size
-- **HUD Order** - Reorder elements via drag-and-drop interface
-- **FPS Tweaks** - Configure display mode (Minimal/Normal/Full), thresholds, and status indicator
-- **Inventory Tweaks** - Choose display style (Percent/Value/Boxes)
-- **Oxygen Settings** - Adjust overlay position and toggle vanilla air bubbles
+- **HUD Workbench** - Visual drag-and-drop editor with:
+  - Live HUD preview
+  - Zone-based snapping (left, center, right)
+  - Spacer elements for flexible layouts
+  - Auto-stacking with precise hitbox alignment
+- **Scaling** - Adjust HUD size from 50% to 250%
+- **FPS Tweaks** - Configure display mode (Minimal/Normal/Full), thresholds, and animated dot indicator
+- **Inventory Tweaks** - Choose display style (Grid/Percent/Fraction)
+- **Oxygen Settings** - Adjust centered overlay position with color-coded bar and toggle vanilla air bubbles
 
 ## 🖼️ Screenshots
 
@@ -145,15 +147,23 @@ Found a bug or need help?
 
 ## 📊 Version History
 
-- **v1.10.1** - Latest release (February 2026)
+- **v1.11.1** - Latest release (February 12, 2026)
+  - **NEW: WYSIWYG HUD Workbench** - Visual drag-and-drop editor with live preview
+  - **NEW: Zone-Based Snapping** - Elements auto-snap to left, center, or right screen zones
+  - **NEW: Spacer Elements** - Add flexible vertical spacing between elements
+  - **IMPROVED: Hitbox Alignment** - Drag/hover boxes now align precisely with HUD text at any scale
+  - **FIXED: Critical NPE crash** when opening HUD workbench
+  - Auto-stacking elements in each zone with proper spacing
+  - Elements shift automatically when dragged between positions
+  - Version auto-displayed in About screen via Fabric metadata
+
+- **v1.10.1** - Previous release
   - Refactored oxygen display to centered overlay with color-coded bars
   - Removed text effects (shimmer, chroma) for cleaner performance
-  - Removed background styling feature for simplified design
-  - Removed shadow and soft corners features
+  - Removed background styling and shadow features for simplified design
   - Expanded color palette to 20+ options
   - Improved FPS display modes (Minimal/Normal/Full)
   - Enhanced configuration screen
-  - Version now auto-updates in About screen
 
 ## 🙏 Acknowledgments
 
