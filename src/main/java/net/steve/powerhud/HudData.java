@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Collection;
 
 public class HudData {
-    public static String fpsStr="", coordsStr="", dirStr="", biomeStr="", timeStr="", timeLabel="Time", vitStr="", blockStr="", invStr="", oxyStr="", targetType="Block", lightStr="", dayStr="", blockProps="", blockStatsStr = "", gamemodeStr = "";
+    public static String fpsStr="", coordsStr="", dirStr="", biomeStr="", timeStr="", timeLabel="Time", vitStr="", blockStr="", invStr="", oxyStr="", oxyBarStr="", oxyOverlayStr="", oxyStatusStr="", targetType="Block", lightStr="", dayStr="", blockProps="", blockStatsStr = "", gamemodeStr = "";
     public static String cpuName = "Unknown CPU", gpuName = "Unknown GPU", displayInfo = "Unknown Display", entityCount = "-", particleCount = "-", chunkStats = "-", soundStats = "-", moveFlags = "-", effectList = "None";
     public static int fpsColor=0xFFFFFFFF, vitColor=0xFFFFFFFF, invColor=0xFFFFFFFF, invCount=0, oxyColor=0xFFFFFFFF, currentFps = 0, minFps = -1, maxFps = -1;
     public static float oxyPercent = 1.0f, avgFps = 0;
@@ -94,29 +94,31 @@ public class HudData {
         if (isSubmerged || air < maxAir) {
             String status;
             if (air >= maxAir * 0.8) {
-                oxyColor = 0xFF55FF55;
+                oxyColor = 0x6655FF55;
                 status = "Safe";
             } else if (air >= maxAir * 0.5) {
-                oxyColor = 0xFFFFFF55;
+                oxyColor = 0x66FFFF55;
                 status = "Caution";
             } else if (air >= maxAir * 0.25) {
-                oxyColor = 0xFFFF8800;
+                oxyColor = 0x66FF8800;
                 status = "Low";
             } else {
-                oxyColor = 0xFFFF5555;
+                oxyColor = 0x66FF5555;
                 status = "CRITICAL";
             }
 
-            // Generate bar (10 characters wide)
-            int barLength = 10;
+            // Unicode bar (shorter by 25%)
+            int barLength = 12;
             int filled = (int)(barLength * oxyPercent);
-            StringBuilder bar = new StringBuilder();
-            for (int i = 0; i < barLength; i++) {
-                bar.append(i < filled ? "█" : "░");
-            }
-
-            oxyStr = "◆ Oxygen: " + bar.toString() + " [" + status + "]";
+            int percent = Math.round(oxyPercent * 100.0f);
+            oxyBarStr = "";
+            oxyOverlayStr = percent + "%";
+            oxyStatusStr = status;
+            oxyStr = status;
         } else {
+            oxyBarStr = "";
+            oxyOverlayStr = "";
+            oxyStatusStr = "";
             oxyStr = "";
         }
     }

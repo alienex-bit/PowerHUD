@@ -62,6 +62,7 @@ public class PowerHudConfig {
     public static boolean showBlock = true;
     public static boolean showInventory = true;
     public static boolean showOxygen = true;
+    public static int oxygenOverlayY = 65; // Distance from bottom of screen
     public static boolean showGamemode = true;
     public static boolean fpsPulse = true;
     public static boolean boldTitles = false;

@@ -76,8 +76,13 @@ public class HudOrderScreen extends Screen {
         List<Integer> indices = new ArrayList<>();
         
         for (int i = 0; i < tempOrder.size(); i++) {
-            if (tempOrder.get(i).alignment == align) {
-                items.add(tempOrder.get(i));
+            PowerHudConfig.LayoutEntry entry = tempOrder.get(i);
+            // Skip oxygen - it's now a standalone overlay, not part of columns
+            if (entry.id.equals("OXY")) {
+                continue;
+            }
+            if (entry.alignment == align) {
+                items.add(entry);
                 indices.add(i);
             }
         }

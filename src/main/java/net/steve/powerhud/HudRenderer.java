@@ -110,6 +110,11 @@ public class HudRenderer implements HudRenderCallback {
         
         // Build columns from layout entries
         for (PowerHudConfig.LayoutEntry entry : PowerHudConfig.hudOrder) {
+            // Skip oxygen - it's rendered as a standalone overlay
+            if (entry.id.equals("OXY")) {
+                continue;
+            }
+
             if (entry.id.equals(TEXT_SPACE)) {
                 Renderable r = new Renderable(
                     null,
@@ -160,6 +165,11 @@ public class HudRenderer implements HudRenderCallback {
         renderCol(dc, ren, cCol, sw, theme, s, ALIGN_CENTER);
         renderCol(dc, ren, rCol, sw, theme, s, ALIGN_RIGHT);
         
+        // Render oxygen as standalone centered overlay
+        if (PowerHudConfig.showOxygen) {
+            renderOxygenOverlay(dc, ren, sw, s, theme);
+        }
+
         dc.getMatrices().pop();
     }
 
@@ -211,21 +221,6 @@ public class HudRenderer implements HudRenderCallback {
                 }
                 
                 currentY += INV_HEIGHT_TOTAL;
-            }
-            // Special handling for oxygen (now single line format)
-            else if (item.id.equals("OXY")) {
-                int lineW = getWidth(item.value, ren, false);
-                int modX = (align == ALIGN_LEFT) ? SPACING_HUD_TOP
-                    : (align == ALIGN_CENTER ? (sw/2 - lineW/2)
-                    : sw - lineW - SPACING_HUD_TOP);
-
-                boolean shouldRender = HudOrderScreen.isWorkbenchActive
-                    || !item.value.isEmpty();
-
-                if (shouldRender) {
-                    drawStyledText(dc, ren, item.value, modX, currentY + hAdj, item.valColor, s, false, now);
-                    currentY += spacing;
-                }
             }
             // Standard line rendering
             else {
@@ -294,7 +289,7 @@ public class HudRenderer implements HudRenderCallback {
             case "INV" -> new HudLineRaw("Inventory", HudData.invStr, HudData.invColor);
             case "OXY" -> (HudData.oxyStr.isEmpty() && !HudOrderScreen.isWorkbenchActive 
                 ? null 
-                : new HudLineRaw("Oxygen Level", HudData.oxyStr.isEmpty() ? TEXT_OXYGEN_HOLDING : HudData.oxyStr, HudData.oxyColor));
+                : new HudLineRaw("Oxygen", HudData.oxyStr.isEmpty() ? TEXT_OXYGEN_HOLDING : HudData.oxyStr, HudData.oxyColor));
             case "BLOCK_STATS" -> new HudLineRaw("Blocks", HudData.blockStatsStr, theme);
             case "GAMEMODE" -> new HudLineRaw("Mode", HudData.gamemodeStr, theme);
             default -> null;
@@ -349,6 +344,52 @@ public class HudRenderer implements HudRenderCallback {
         );
     }
 
+    private void renderOxygenOverlay(DrawContext dc, TextRenderer ren, int sw, float s, int theme) {
+        String overlay = HudData.oxyOverlayStr;
+        String status = HudData.oxyStatusStr;
+
+        // Don't render if not underwater
+        if (overlay.isEmpty()) {
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        int sh = (int)(MinecraftClient.getInstance().getWindow().getScaledHeight() / s);
+
+        // Build the centered message
+        String centerMsg = "Oxygen: " + overlay + " - " + status;
+        int textW = getWidth(centerMsg, ren, false);
+        int textH = ren.fontHeight;
+
+        // Fixed bar width - use a consistent width regardless of text
+        int barW = 200;
+        int barH = textH + 6;
+
+        // Position centered horizontally, configurable vertical position (from bottom)
+        int barX = sw / 2 - barW / 2;
+        int barY = sh - PowerHudConfig.oxygenOverlayY;
+
+        // Draw darker semi-transparent background bar for better contrast
+        int barBg = 0x99000000;
+        dc.fill(barX, barY, barX + barW, barY + barH, barBg);
+
+        // Draw filled portion based on oxygen level
+        int filled = (int)(barW * HudData.oxyPercent);
+        if (filled > 0) {
+            dc.fill(barX, barY, barX + filled, barY + barH, HudData.oxyColor);
+        }
+
+        // Draw text centered on bar with shadow for better visibility
+        int textX = barX + (barW - textW) / 2;
+        int textY = barY + (barH - textH) / 2;
+
+        // Draw black shadow/outline for text visibility against bright colors
+        dc.drawText(ren, Text.literal(centerMsg).setStyle(Style.EMPTY.withFont(FONTS[PowerHudConfig.fontIndex])),
+            textX + 1, textY + 1, 0xFF000000, false);
+        // Draw main text in white
+        drawStyledText(dc, ren, centerMsg, textX, textY, 0xFFFFFFFF, s, false, now);
+    }
+
     private boolean shouldShow(String id) {
         return switch(id) {
             case "FPS" -> PowerHudConfig.showFps;
@@ -367,3 +408,4 @@ public class HudRenderer implements HudRenderCallback {
         };
     }
 }
+

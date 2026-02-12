@@ -121,15 +121,17 @@ public class PowerHudConfigScreen extends Screen {
                 
                 addBool(rX, startY + (leading * 4), "Inventory", PowerHudConfig.showInventory, 
                     v -> PowerHudConfig.showInventory = v, hW, btnH, "Toggle Inventory");
-                addBool(rX + hW + gap, startY + (leading * 4), "Oxygen", PowerHudConfig.showOxygen, 
-                    v -> PowerHudConfig.showOxygen = v, hW, btnH, "Toggle Oxygen Info");
-                
+                addBool(rX + hW + gap, startY + (leading * 4), "Oxygen Overlay", PowerHudConfig.showOxygen,
+                    v -> PowerHudConfig.showOxygen = v, hW, btnH, "Toggle Centered Oxygen Display");
+
                 addBool(rX, startY + (leading * 5), "Vanilla Air", !PowerHudConfig.hideVanillaOxygen, 
                     v -> PowerHudConfig.hideVanillaOxygen = !v, hW, btnH, "Show/Hide Default Air Bubbles");
-                addBool(rX + hW + gap, startY + (leading * 5), "Block Stats", PowerHudConfig.showBlockStats, 
+                addStepper(rX + hW + gap, startY + (leading * 5), "Oxygen Height", PowerHudConfig.oxygenOverlayY,
+                    "Distance from bottom", v -> PowerHudConfig.oxygenOverlayY = Math.max(10, Math.min(200, v)), hW, btnH, 5);
+
+                addBool(rX, startY + (leading * 6), "Block Stats", PowerHudConfig.showBlockStats,
                     v -> PowerHudConfig.showBlockStats = v, hW, btnH, "Track session blocks");
-                
-                addBool(rX, startY + (leading * 6), "Gamemode", PowerHudConfig.showGamemode, 
+                addBool(rX + hW + gap, startY + (leading * 6), "Gamemode", PowerHudConfig.showGamemode,
                     v -> PowerHudConfig.showGamemode = v, hW, btnH, "Show current game mode");
                 break;
                 
