@@ -22,17 +22,37 @@ public class HudOrderScreen extends Screen {
     private boolean isDragging = false;
 
     // Palette state
-    private static final int PALETTE_HEIGHT = 80;
-    private static final int PALETTE_Y_OFFSET = 100;
-    private static final int ELEMENT_BUTTON_WIDTH = 80;
-    private static final int ELEMENT_BUTTON_HEIGHT = 20;
-    private static final int ELEMENT_SPACING = 5;
+    private static final int PALETTE_HEIGHT = 110;
+    private static final int PALETTE_Y_OFFSET = 30;
+    private static final int ELEMENT_BUTTON_WIDTH = 70;
+    private static final int ELEMENT_BUTTON_HEIGHT = 18;
+    private static final int ELEMENT_SPACING = 4;
+    private static final int ELEMENTS_PER_ROW = 6;
+
+    // Snap zones
+    private static final int SNAP_THRESHOLD = 50;
+    private PowerHudConfig.LayoutEntry hoveredPaletteElement = null;
 
     // Available elements that can be added
     private static final String[] ALL_ELEMENTS = {
         "FPS", "XYZ", "FACING", "BIOME", "TIME", "VIT",
         "BLOCK", "TOOL", "INV", "GAMEMODE", "BLOCK_STATS"
     };
+
+    // Element descriptions for tooltips
+    private static final Map<String, String> ELEMENT_TOOLTIPS = Map.ofEntries(
+        Map.entry("FPS", "Frames Per Second display"),
+        Map.entry("XYZ", "Current coordinates"),
+        Map.entry("FACING", "Direction you're facing"),
+        Map.entry("BIOME", "Current biome name"),
+        Map.entry("TIME", "In-game time"),
+        Map.entry("VIT", "Health and vitality"),
+        Map.entry("BLOCK", "Block you're looking at"),
+        Map.entry("TOOL", "Best tool for block"),
+        Map.entry("INV", "Inventory grid display"),
+        Map.entry("GAMEMODE", "Current game mode"),
+        Map.entry("BLOCK_STATS", "Blocks mined/placed")
+    );
 
     public HudOrderScreen(Screen parent) {
         super(Text.literal("HUD Workbench - WYSIWYG Editor"));
@@ -69,44 +89,69 @@ public class HudOrderScreen extends Screen {
         isWorkbenchActive = true;
         this.clearChildren();
         
-        int bottomY = this.height - PALETTE_Y_OFFSET;
+        int bottomY = this.height - PALETTE_HEIGHT - 45; // Moved up higher
 
-        // Reset button
+        // Action buttons row 1
         addDrawableChild(ButtonWidget.builder(Text.literal("Reset Default"), b -> {
             PowerHudConfig.resetToVanilla();
             tempOrder.clear();
             for (PowerHudConfig.LayoutEntry entry : PowerHudConfig.hudOrder) {
                 tempOrder.add(PowerHudConfig.LayoutEntry.freeForm(entry.id, entry.x, entry.y));
             }
-        }).dimensions(this.width/2 - 200, bottomY, 90, 20)
+        }).dimensions(this.width/2 - 280, bottomY, 85, 20)
           .tooltip(Tooltip.of(Text.literal("Restore default layout")))
           .build());
         
-        // Clear all button
         addDrawableChild(ButtonWidget.builder(Text.literal("Clear All"), b -> {
             tempOrder.clear();
-        }).dimensions(this.width/2 - 100, bottomY, 90, 20)
+        }).dimensions(this.width/2 - 190, bottomY, 85, 20)
           .tooltip(Tooltip.of(Text.literal("Remove all elements")))
           .build());
 
-        // Done button
+        addDrawableChild(ButtonWidget.builder(Text.literal("Snap Left"), b -> snapSelected(10))
+            .dimensions(this.width/2 - 100, bottomY, 85, 20)
+            .tooltip(Tooltip.of(Text.literal("Snap dragged element to left side")))
+            .build());
+
+        addDrawableChild(ButtonWidget.builder(Text.literal("Snap Center"), b -> snapSelected(0))
+            .dimensions(this.width/2 - 10, bottomY, 85, 20)
+            .tooltip(Tooltip.of(Text.literal("Snap dragged element to center")))
+            .build());
+
+        addDrawableChild(ButtonWidget.builder(Text.literal("Snap Right"), b -> snapSelected(-150))
+            .dimensions(this.width/2 + 80, bottomY, 85, 20)
+            .tooltip(Tooltip.of(Text.literal("Snap dragged element to right side")))
+            .build());
+
+        // Action buttons row 2
         addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> {
             PowerHudConfig.hudOrder.clear();
             PowerHudConfig.hudOrder.addAll(tempOrder);
             PowerHudConfig.save();
             isWorkbenchActive = false;
             this.client.setScreen(parent);
-        }).dimensions(this.width / 2 + 10, bottomY, 90, 20)
+        }).dimensions(this.width / 2 - 95, bottomY + 25, 90, 20)
           .tooltip(Tooltip.of(Text.literal("Save and exit")))
           .build());
 
-        // Cancel button
         addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), b -> {
             isWorkbenchActive = false;
             this.client.setScreen(parent);
-        }).dimensions(this.width / 2 + 110, bottomY, 90, 20)
+        }).dimensions(this.width / 2 + 5, bottomY + 25, 90, 20)
           .tooltip(Tooltip.of(Text.literal("Exit without saving")))
           .build());
+    }
+
+    private void snapSelected(int targetX) {
+        if (draggedElement != null && isDragging) {
+            if (targetX == 0) {
+                // Center snap - calculate based on element width
+                int elementWidth = getElementWidth(draggedElement.id);
+                draggedElement.x = -(elementWidth / 2);
+            } else {
+                draggedElement.x = targetX;
+            }
+        }
     }
 
     @Override
@@ -129,14 +174,17 @@ public class HudOrderScreen extends Screen {
                 }
             }
 
-            // Check if clicking on palette elements
-            int paletteY = this.height - PALETTE_HEIGHT - 30;
-            int paletteX = (this.width - (ALL_ELEMENTS.length * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING))) / 2;
+            // Check if clicking on palette elements (multi-row layout)
+            int paletteY = this.height - PALETTE_HEIGHT;
+            int totalWidth = ELEMENTS_PER_ROW * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING);
+            int paletteStartX = (this.width - totalWidth) / 2;
 
             for (int i = 0; i < ALL_ELEMENTS.length; i++) {
                 String elementId = ALL_ELEMENTS[i];
-                int btnX = paletteX + i * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING);
-                int btnY = paletteY + 20;
+                int row = i / ELEMENTS_PER_ROW;
+                int col = i % ELEMENTS_PER_ROW;
+                int btnX = paletteStartX + col * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING);
+                int btnY = paletteY + 20 + row * (ELEMENT_BUTTON_HEIGHT + ELEMENT_SPACING);
 
                 // Skip if element already placed
                 boolean alreadyPlaced = tempOrder.stream().anyMatch(e -> e.id.equals(elementId));
@@ -159,7 +207,7 @@ public class HudOrderScreen extends Screen {
                 }
             }
         }
-        
+
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -167,7 +215,7 @@ public class HudOrderScreen extends Screen {
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0 && isDragging) {
             // Check if dropped in palette area (remove element)
-            int paletteY = this.height - PALETTE_HEIGHT - 30;
+            int paletteY = this.height - PALETTE_HEIGHT;
             if (mouseY >= paletteY) {
                 tempOrder.remove(draggedElement);
             }
@@ -273,31 +321,49 @@ public class HudOrderScreen extends Screen {
         }
 
         // Draw palette area at bottom
-        int paletteY = this.height - PALETTE_HEIGHT - 30;
+        int paletteY = this.height - PALETTE_HEIGHT;
         dc.fill(0, paletteY, this.width, this.height, 0xCC222222);
         dc.drawCenteredTextWithShadow(this.textRenderer, "Available Elements (Drag to add)", this.width / 2, paletteY + 5, 0xFFFFFFFF);
 
-        // Draw palette elements
-        int paletteX = (this.width - (ALL_ELEMENTS.length * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING))) / 2;
+        // Draw palette elements in multi-row grid
+        int totalWidth = ELEMENTS_PER_ROW * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING);
+        int paletteStartX = (this.width - totalWidth) / 2;
+        hoveredPaletteElement = null;
+
         for (int i = 0; i < ALL_ELEMENTS.length; i++) {
             String elementId = ALL_ELEMENTS[i];
-            int btnX = paletteX + i * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING);
-            int btnY = paletteY + 20;
+            int row = i / ELEMENTS_PER_ROW;
+            int col = i % ELEMENTS_PER_ROW;
+            int btnX = paletteStartX + col * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING);
+            int btnY = paletteY + 20 + row * (ELEMENT_BUTTON_HEIGHT + ELEMENT_SPACING);
 
             boolean alreadyPlaced = tempOrder.stream().anyMatch(e -> e.id.equals(elementId));
-            int color = alreadyPlaced ? 0xFF333333 : 0xFF555555;
+            boolean hovered = mx >= btnX && mx <= btnX + ELEMENT_BUTTON_WIDTH &&
+                            my >= btnY && my <= btnY + ELEMENT_BUTTON_HEIGHT;
+
+            int color = alreadyPlaced ? 0xFF333333 : (hovered ? 0xFF777777 : 0xFF555555);
 
             dc.fill(btnX, btnY, btnX + ELEMENT_BUTTON_WIDTH, btnY + ELEMENT_BUTTON_HEIGHT, color);
             int textColor = alreadyPlaced ? 0xFF666666 : 0xFFFFFFFF;
-            dc.drawCenteredTextWithShadow(this.textRenderer, elementId, btnX + ELEMENT_BUTTON_WIDTH/2, btnY + 6, textColor);
+            dc.drawCenteredTextWithShadow(this.textRenderer, elementId, btnX + ELEMENT_BUTTON_WIDTH/2, btnY + 5, textColor);
+
+            // Track hovered element for tooltip
+            if (hovered && !alreadyPlaced) {
+                hoveredPaletteElement = PowerHudConfig.LayoutEntry.freeForm(elementId, 0, 0);
+            }
         }
 
         // Instructions
         dc.drawCenteredTextWithShadow(this.textRenderer,
-            "Drag elements to position • Drop in palette to remove • Right side = negative X offset",
+            "Drag elements to position • Drop in palette to remove • Use Snap buttons for quick alignment",
             this.width / 2, 10, 0xFFAAAAAA);
 
         super.render(dc, mx, my, t);
+
+        // Draw tooltip for hovered palette element
+        if (hoveredPaletteElement != null && ELEMENT_TOOLTIPS.containsKey(hoveredPaletteElement.id)) {
+            dc.drawTooltip(this.textRenderer, Text.literal(ELEMENT_TOOLTIPS.get(hoveredPaletteElement.id)), mx, my);
+        }
     }
 
     @Override
