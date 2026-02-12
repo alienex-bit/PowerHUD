@@ -246,7 +246,7 @@ public class HudRenderer implements HudRenderCallback {
                     now
                 );
                 
-                currentY += OXY_BAR_HEIGHT + (spacing - PowerHudConfig.lineSpacing);
+                currentY += spacing;
             }
             // Standard line rendering
             else {
