@@ -191,7 +191,6 @@ public class HudRenderer implements HudRenderCallback {
                     : (align == ALIGN_CENTER ? (sw/2 - INV_GRID_WIDTH/2) 
                     : sw - INV_GRID_WIDTH - SPACING_HUD_TOP);
                 
-                renderModularBackground(dc, modX, currentY, INV_GRID_WIDTH, INV_GRID_HEIGHT, theme, item.id);
                 drawStyledText(dc, ren, "Inventory", modX, currentY, tColor, s, PowerHudConfig.boldTitles, now);
                 
                 // Draw inventory grid
@@ -220,8 +219,6 @@ public class HudRenderer implements HudRenderCallback {
                     : (align == ALIGN_CENTER ? (sw/2 - barW/2) 
                     : sw - barW - SPACING_HUD_TOP);
                 String previewVal = item.value.equals(TEXT_PREVIEW) ? TEXT_OXYGEN_HOLDING : item.value;
-                
-                renderModularBackground(dc, modX, currentY, barW, OXY_BAR_HEIGHT + hAdj, theme, item.id);
                 
                 int barColor = (item.valColor & RGB_MASK) | COLOR_BACKGROUND_SEMI;
                 int fillW = (int)((barW + 6) * HudData.oxyPercent);
@@ -266,7 +263,6 @@ public class HudRenderer implements HudRenderCallback {
                     && !(item.id.equals("TOOL") && item.value.isEmpty()));
                 
                 if (shouldRender) {
-                    renderModularBackground(dc, modX, currentY, lineW, HUD_LINE_HEIGHT + hAdj, theme, item.id);
                     drawStyledText(
                         dc,
                         ren,
@@ -357,36 +353,7 @@ public class HudRenderer implements HudRenderCallback {
         Identifier f = FONTS[PowerHudConfig.fontIndex];
         Style st = Style.EMPTY.withFont(f).withBold(b);
         
-        if (PowerHudConfig.textEffect == PowerHudConfig.TextEffect.OFF) {
-            int off = getShadowOffset(s);
-            dc.drawText(ren, Text.literal(t).setStyle(st), x + off, y + off, (c & ALPHA_MASK) >> SHADOW_ALPHA_SHIFT | COLOR_TEXT_BLACK, false);
-            dc.drawText(ren, Text.literal(t).setStyle(st), x, y, c, true);
-            return;
-        }
-        
-        int curX = x;
-        for (int i = 0; i < t.length(); i++) {
-            String ch = String.valueOf(t.charAt(i));
-            int color = c;
-            int dX = curX;
-            int dY = y;
-            
-            switch (PowerHudConfig.textEffect) {
-                case SHIMMER -> color = hsbToRgb(
-                    0.0f,
-                    0.0f,
-                    Math.min(1f, 1f * (SHIMMER_MIN + SHIMMER_RANGE * (float)Math.sin(now / SHIMMER_SPEED + i * 0.45)))
-                );
-                case CHROMA -> color = hsbToRgb(
-                    ((now + i * CHROMA_OFFSET) % CHROMA_CYCLE_MS) / (float)CHROMA_CYCLE_MS,
-                    CHROMA_SATURATION,
-                    CHROMA_BRIGHTNESS
-                );
-            }
-            
-            dc.drawText(ren, Text.literal(ch).setStyle(st), dX, dY, color, true);
-            curX += ren.getWidth(Text.literal(ch).setStyle(st));
-        }
+        dc.drawText(ren, Text.literal(t).setStyle(st), x, y, c, false);
     }
 
     private int getWidth(String t, TextRenderer ren, boolean b) {
@@ -413,38 +380,5 @@ public class HudRenderer implements HudRenderCallback {
             case "GAMEMODE" -> PowerHudConfig.showGamemode;
             default -> false;
         };
-    }
-
-    private void renderModularBackground(
-        DrawContext dc,
-        int x,
-        int y,
-        int w,
-        int h,
-        int theme,
-        String id
-    ) {
-        int boxAlpha = switch(PowerHudConfig.boxStyle) {
-            case OFF -> COLOR_BACKGROUND_TRANSPARENT;
-            case MIST -> COLOR_BACKGROUND_LIGHT;
-            case HAZE -> COLOR_BACKGROUND_MEDIUM;
-            case DUSK -> COLOR_BACKGROUND_HEAVY;
-            case OBSIDIAN -> COLOR_BACKGROUND_OBSIDIAN;
-            case SOLID -> COLOR_BACKGROUND_SOLID;
-        };
-        
-        dc.fill(x - SPACING_MINI, y - SPACING_MINI, x + w + SPACING_MINI + 1, y + h + 1, boxAlpha);
-        
-        if (PowerHudConfig.roundCorners) {
-            dc.fill(x - SPACING_MINI, y - SPACING_MINI, x - 1, y - 1, COLOR_BACKGROUND_TRANSPARENT);
-            dc.fill(x + w + SPACING_MINI, y - SPACING_MINI, x + w + SPACING_MINI + 1, y - 1, COLOR_BACKGROUND_TRANSPARENT);
-            dc.fill(x - SPACING_MINI, y + h, x - 1, y + h + 1, COLOR_BACKGROUND_TRANSPARENT);
-            dc.fill(x + w + SPACING_MINI, y + h, x + w + SPACING_MINI + 1, y + h + 1, COLOR_BACKGROUND_TRANSPARENT);
-        }
-    }
-
-    private static int hsbToRgb(float h, float s, float b) {
-        int rgb = java.awt.Color.HSBtoRGB(h, s, b);
-        return ALPHA_MASK | rgb;
     }
 }

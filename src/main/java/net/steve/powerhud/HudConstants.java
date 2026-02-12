@@ -8,17 +8,11 @@ public class HudConstants {
     
     // ==================== UI COLORS ====================
     
-    // Background colors (with alpha)
+    // Background colors (with alpha) - Used for UI screens and special elements
     public static final int COLOR_BACKGROUND_DARK = 0xCC000000;
     public static final int COLOR_BACKGROUND_OVERLAY = 0x77000000;
-    public static final int COLOR_BACKGROUND_TRANSPARENT = 0x00000000;
     public static final int COLOR_BACKGROUND_SEMI = 0xA5000000;
-    public static final int COLOR_BACKGROUND_LIGHT = 0x11000000;
-    public static final int COLOR_BACKGROUND_MEDIUM = 0x33000000;
-    public static final int COLOR_BACKGROUND_HEAVY = 0x55000000;
-    public static final int COLOR_BACKGROUND_OBSIDIAN = 0xAA000000;
-    public static final int COLOR_BACKGROUND_SOLID = 0xDD000000;
-    
+
     // Border/separator colors
     public static final int COLOR_SEPARATOR = 0x33FFFFFF;
     public static final int COLOR_BORDER_LIGHT = 0x44FFFFFF;
@@ -123,33 +117,13 @@ public class HudConstants {
     
     // ==================== ANIMATION & TIMING ====================
     
-    // Animation speeds
-    public static final double SHIMMER_SPEED = 220.0;
+    // FPS dot pulse animation
     public static final double PULSE_SPEED = 100.0;
-    public static final long CHROMA_CYCLE_MS = 2400L;
-    public static final long CHROMA_OFFSET = 90L;
-    
-    // Animation ranges
-    public static final float SHIMMER_MIN = 0.75f;
-    public static final float SHIMMER_RANGE = 0.25f;
     public static final float PULSE_BASE = 1.0f;
     public static final float PULSE_AMPLITUDE = 0.4f;
     public static final float PHASE_BASE = 0.5f;
     
-    // Chroma settings
-    public static final float CHROMA_SATURATION = 0.65f;
-    public static final float CHROMA_BRIGHTNESS = 1.0f;
-    
     // ==================== TEXT RENDERING ====================
-    
-    // Shadow offsets
-    public static final int SHADOW_OFFSET_NORMAL = 1;
-    public static final int SHADOW_OFFSET_LARGE = 2;
-    public static final float SHADOW_SCALE_THRESHOLD = 1.4f;
-    
-    // Shadow alpha calculation
-    public static final int SHADOW_ALPHA_SHIFT = 2;
-    public static final int SHADOW_ALPHA_MASK = 0xFF000000;
     
     // Color masks
     public static final int ALPHA_MASK = 0xFF000000;
@@ -158,12 +132,6 @@ public class HudConstants {
     public static final int GREEN_SHIFT = 8;
     public static final int BLUE_SHIFT = 16;
     public static final int ALPHA_SHIFT = 24;
-    
-    // ==================== CORNER ROUNDING ====================
-    
-    // Corner pixel offsets for rounded corners
-    public static final int CORNER_OFFSET = 2;
-    public static final int CORNER_SIZE = 1;
     
     // ==================== FPS DOT ====================
     
@@ -196,13 +164,6 @@ public class HudConstants {
      */
     public static boolean isValidScale(int scale) {
         return scale >= SCALE_MIN && scale <= SCALE_MAX;
-    }
-    
-    /**
-     * Get shadow offset based on scale
-     */
-    public static int getShadowOffset(float scale) {
-        return (scale > SHADOW_SCALE_THRESHOLD) ? SHADOW_OFFSET_LARGE : SHADOW_OFFSET_NORMAL;
     }
     
     /**

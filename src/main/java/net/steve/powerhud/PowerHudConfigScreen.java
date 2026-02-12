@@ -148,32 +148,6 @@ public class PowerHudConfigScreen extends Screen {
                 
                 addToggle(
                     rX, startY + leading,
-                    "Shadow Level",
-                    PowerHudConfig.boxStyle.toString(),
-                    "HUD background style",
-                    b -> {
-                        PowerHudConfig.boxStyle = PowerHudConfig.BoxStyle.values()[
-                            (PowerHudConfig.boxStyle.ordinal() + 1) % PowerHudConfig.BoxStyle.values().length
-                        ];
-                        clearAndInit();
-                    },
-                    btnW, btnH
-                );
-                
-                addToggle(
-                    rX, startY + (leading * 2),
-                    "Soft Corners",
-                    PowerHudConfig.roundCorners ? "ON" : "OFF",
-                    "Adds corners to HUD boxes",
-                    b -> {
-                        PowerHudConfig.roundCorners = !PowerHudConfig.roundCorners;
-                        clearAndInit();
-                    },
-                    btnW, btnH
-                );
-                
-                addToggle(
-                    rX, startY + (leading * 3),
                     "Data Color",
                     PowerHudConfig.COLOR_NAMES[PowerHudConfig.themeIndex],
                     "HUD data colour",
@@ -185,7 +159,7 @@ public class PowerHudConfigScreen extends Screen {
                 );
                 
                 addToggle(
-                    rX, startY + (leading * 4),
+                    rX, startY + (leading * 2),
                     "Title Color",
                     PowerHudConfig.COLOR_NAMES[PowerHudConfig.titleColorIndex],
                     "HUD title colour",
@@ -197,26 +171,12 @@ public class PowerHudConfigScreen extends Screen {
                 );
                 
                 addToggle(
-                    rX, startY + (leading * 5),
+                    rX, startY + (leading * 3),
                     "Bold Titles",
                     PowerHudConfig.boldTitles ? "ON" : "OFF",
                     "HUD title bold?",
                     b -> {
                         PowerHudConfig.boldTitles = !PowerHudConfig.boldTitles;
-                        clearAndInit();
-                    },
-                    btnW, btnH
-                );
-                
-                addToggle(
-                    rX, startY + (leading * 6),
-                    "Visual FX",
-                    PowerHudConfig.textEffect.toString(),
-                    "Applies HUD text effects",
-                    b -> {
-                        PowerHudConfig.textEffect = PowerHudConfig.TextEffect.values()[
-                            (PowerHudConfig.textEffect.ordinal() + 1) % PowerHudConfig.TextEffect.values().length
-                        ];
                         clearAndInit();
                     },
                     btnW, btnH

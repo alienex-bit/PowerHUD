@@ -13,29 +13,37 @@ public class PowerHudConfig {
     // Enums
     public enum FpsMode { MINIMAL, NORMAL, FULL }
     public enum BoxStyle { OFF, MIST, HAZE, DUSK, OBSIDIAN, SOLID }
-    public enum TextEffect { 
-        OFF, SHIMMER, BREATH, CHROMA, RAINBOW_STATIC, 
-        TERMINAL, GHOST, GLITCH, NEON, LAVA, AURORA, MATRIX 
-    }
     public enum InventoryMode { GRID, PERCENT, FRACTION }
     
-    // Color constants
+    // Color constants - 20 colors for comprehensive theming
     public static final int[] COLORS = {
-        0xFFFFFFFF, // White
-        0xFF55FF55, // Green
-        0xFFFFD700, // Gold
-        0xFF00FFFF, // Cyan
-        0xFFFF5555, // Red
-        0xFFFFFF55, // Yellow
-        0xFF55FF55, // Blue
-        0xFFAA00AA, // Purple
-        0xFFFF55FF, // Magenta
-        0xFFAAAAAA  // Gray
+        0xFFFFFFFF, // 0  - White
+        0xFF55FF55, // 1  - Green (Lime)
+        0xFFFFD700, // 2  - Gold
+        0xFF00FFFF, // 3  - Cyan (Aqua)
+        0xFFFF5555, // 4  - Red (Light)
+        0xFFFFFF55, // 5  - Yellow (Bright)
+        0xFF5555FF, // 6  - Blue (Fixed!)
+        0xFFAA00AA, // 7  - Purple (Dark)
+        0xFFFF55FF, // 8  - Magenta (Pink)
+        0xFFAAAAAA, // 9  - Gray (Medium)
+        0xFFFF8800, // 10 - Orange
+        0xFF00AA88, // 11 - Teal
+        0xFFAAFF00, // 12 - Lime (Bright)
+        0xFFFF88DD, // 13 - Pink (Light)
+        0xFFAADDFF, // 14 - Ice Blue
+        0xFF8855FF, // 15 - Violet
+        0xFFFFAA55, // 16 - Peach
+        0xFF55FFAA, // 17 - Mint
+        0xFFDD4444, // 18 - Crimson
+        0xFF333333  // 19 - Charcoal
     };
     
     public static final String[] COLOR_NAMES = {
-        "White", "Green", "Gold", "Cyan", "Red", 
-        "Yellow", "Blue", "Purple", "Magenta", "Gray"
+        "White", "Green", "Gold", "Cyan", "Red",
+        "Yellow", "Blue", "Purple", "Magenta", "Gray",
+        "Orange", "Teal", "Lime", "Pink", "Ice",
+        "Violet", "Peach", "Mint", "Crimson", "Charcoal"
     };
     
     public static final String[] FONT_NAMES = {
@@ -57,7 +65,6 @@ public class PowerHudConfig {
     public static boolean showGamemode = true;
     public static boolean fpsPulse = true;
     public static boolean boldTitles = false;
-    public static boolean roundCorners = true;
     public static boolean hideVanillaOxygen = false;
     public static boolean enableF3Replacement = false;
     public static boolean showFpsDot = true;
@@ -78,7 +85,6 @@ public class PowerHudConfig {
     // Enum settings
     public static FpsMode fpsMode = FpsMode.MINIMAL;
     public static BoxStyle boxStyle = BoxStyle.DUSK;
-    public static TextEffect textEffect = TextEffect.OFF;
     public static InventoryMode inventoryMode = InventoryMode.GRID;
     
     // Layout settings
@@ -167,12 +173,10 @@ public class PowerHudConfig {
         boolean showBlockStats = PowerHudConfig.showBlockStats;
         boolean fpsPulse = PowerHudConfig.fpsPulse;
         boolean boldTitles = PowerHudConfig.boldTitles;
-        boolean roundCorners = PowerHudConfig.roundCorners;
-        
+
         // Enum fields
         FpsMode fpsMode = PowerHudConfig.fpsMode;
         BoxStyle boxStyle = PowerHudConfig.boxStyle;
-        TextEffect textEffect = PowerHudConfig.textEffect;
         InventoryMode inventoryMode = PowerHudConfig.inventoryMode;
         
         // Integer fields
@@ -222,12 +226,9 @@ public class PowerHudConfig {
             showBlockStats = data.showBlockStats;
             fpsPulse = data.fpsPulse;
             boldTitles = data.boldTitles;
-            roundCorners = data.roundCorners;
-            
+
             // Apply enum settings
             fpsMode = data.fpsMode;
-            boxStyle = data.boxStyle;
-            textEffect = data.textEffect;
             inventoryMode = data.inventoryMode;
             
             // Apply integer settings
