@@ -232,30 +232,36 @@ public class HudRenderer implements HudRenderCallback {
                 int valW = getWidth(item.value, ren, false);
                 int dotW = (item.id.equals("FPS") && PowerHudConfig.showFpsDot) ? HUD_DOT_WIDTH : 0;
                 int iconW = (item.id.equals("TOOL") && !HudData.toolStack.isEmpty()) ? HUD_ICON_WIDTH : 0;
-                int lineW = getWidth(item.title + ": ", ren, PowerHudConfig.boldTitles) + valW + dotW + iconW + HUD_PADDING;
-                int modX = (align == ALIGN_LEFT) ? SPACING_HUD_TOP 
+                int titleW = item.title.isEmpty() ? 0 : getWidth(item.title + ": ", ren, PowerHudConfig.boldTitles);
+                int lineW = titleW + valW + dotW + iconW + HUD_PADDING;
+                int modX = (align == ALIGN_LEFT) ? SPACING_HUD_TOP
                     : (align == ALIGN_CENTER ? (sw/2 - lineW/2) 
                     : sw - lineW - SPACING_HUD_TOP);
                 
                 boolean shouldRender = HudOrderScreen.isWorkbenchActive 
                     || (!(item.id.equals("BLOCK") && item.value.equals(TEXT_AIR)) 
-                    && !(item.id.equals("TOOL") && item.value.isEmpty()));
-                
+                    && !(item.id.equals("TOOL") && item.value.isEmpty())
+                    && !item.value.isEmpty());
+
                 if (shouldRender) {
-                    drawStyledText(
-                        dc,
-                        ren,
-                        item.title + ": ",
-                        modX,
-                        currentY + hAdj,
-                        tColor,
-                        s,
-                        PowerHudConfig.boldTitles,
-                        now
-                    );
-                    
-                    int curX = modX + getWidth(item.title + ": ", ren, PowerHudConfig.boldTitles);
-                    
+                    int curX = modX;
+
+                    // Only render title if it's not empty
+                    if (!item.title.isEmpty()) {
+                        drawStyledText(
+                            dc,
+                            ren,
+                            item.title + ": ",
+                            curX,
+                            currentY + hAdj,
+                            tColor,
+                            s,
+                            PowerHudConfig.boldTitles,
+                            now
+                        );
+                        curX += titleW;
+                    }
+
                     if (dotW > 0) {
                         drawFpsDot(dc, ren, curX, currentY + hAdj, now);
                         curX += dotW;
