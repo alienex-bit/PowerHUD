@@ -109,6 +109,7 @@ public class HudOrderScreen extends Screen {
         
         addDrawableChild(ButtonWidget.builder(Text.literal("Clear All"), b -> {
             tempOrder.clear();
+            init(); // Refresh the screen to update the display
         }).dimensions(startX + btnWidth + btnSpacing, bottomY, btnWidth, 18)
           .tooltip(Tooltip.of(Text.literal("Remove all elements")))
           .build());
