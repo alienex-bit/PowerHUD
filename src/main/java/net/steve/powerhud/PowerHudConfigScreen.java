@@ -10,18 +10,21 @@ import net.minecraft.util.Identifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 
 import static net.steve.powerhud.HudConstants.*;
 
 public class PowerHudConfigScreen extends Screen {
     private enum Category { 
-        DISPLAY, ELEMENTS, THEME, FPS_TWEAK, INV_TWEAK, ABOUT 
+        DISPLAY, ELEMENTS, THEME, FPS_TWEAK, INV_TWEAK, ABOUT, PROFILES
     }
     
     private static Category currentCategory = Category.DISPLAY;
     private final List<TooltipArea> tooltips = new ArrayList<>();
     private final String modVer;
-    
+    private String profileInput = null;
+    private TextFieldWidget profileNameField;
+
     public PowerHudConfigScreen() {
         super(Text.literal("PowerHUD Config"));
         this.modVer = FabricLoader.getInstance()
@@ -58,18 +61,18 @@ public class PowerHudConfigScreen extends Screen {
         // Left side tabs
         addTab(lX, startY, "Display", Category.DISPLAY);
         addTab(lX, startY + leading, "HUD Elements", Category.ELEMENTS);
-        
         addDrawableChild(ButtonWidget.builder(
             Text.literal("HUD Element Order"),
             b -> { this.client.setScreen(new HudOrderScreen(this)); }
         ).dimensions(lX, startY + (leading * 2), BUTTON_WIDTH_TAB, BUTTON_HEIGHT_TALL).build());
-        
         addTab(lX, startY + (leading * 3), "Theme", Category.THEME);
         addTab(lX, startY + (leading * 4), "FPS Tweak", Category.FPS_TWEAK);
         addTab(lX, startY + (leading * 5), "Inventory Tweak", Category.INV_TWEAK);
-        addTab(lX, startY + (leading * 6), "About", Category.ABOUT);
-        
+        addTab(lX, startY + (leading * 6), "Profiles", Category.PROFILES);
+        addTab(lX, startY + (leading * 7), "About", Category.ABOUT);
         // Right side content based on category
+        int profileY = startY;
+        int profileRX = rX;
         switch (currentCategory) {
             case DISPLAY:
                 addToggle(
@@ -271,21 +274,55 @@ public class PowerHudConfigScreen extends Screen {
                 );
                 break;
                 
+            case PROFILES:
+                addLabel(profileRX, profileY, "HUD Profiles", btnW, btnH);
+                profileY += leading;
+                if (profileNameField == null) {
+                    profileNameField = new TextFieldWidget(this.textRenderer, profileRX, profileY, btnW, btnH, Text.literal("Profile Name"));
+                    profileNameField.setText("");
+                }
+                profileNameField.setText(this.profileInput != null ? this.profileInput : "");
+                addDrawableChild(profileNameField);
+                profileY += leading;
+                addButton(profileRX, profileY, "Save Current", btnW, btnH, b -> {
+                    this.profileInput = profileNameField.getText();
+                    if (this.profileInput != null && !this.profileInput.isEmpty()) {
+                        PowerHudConfig.saveProfile(this.profileInput);
+                        clearAndInit();
+                    }
+                });
+                profileY += leading;
+                List<String> profiles = PowerHudConfig.listProfiles();
+                for (String profileName : profiles) {
+                    addLabel(profileRX, profileY, profileName, btnW, btnH);
+                    addButton(profileRX + btnW + gap, profileY, "Load", hW, btnH, b -> {
+                        PowerHudConfig.loadProfile(profileName);
+                        clearAndInit();
+                    });
+                    addButton(profileRX + btnW + gap + hW + gap, profileY, "Delete", hW, btnH, b -> {
+                        PowerHudConfig.deleteProfile(profileName);
+                        clearAndInit();
+                    });
+                    profileY += leading;
+                }
+                break;
+
             case ABOUT:
+                // Move rendering logic to render() method
                 break;
         }
-        
+
         // Done button at bottom
         addDrawableChild(ButtonWidget.builder(
             Text.literal("Done"),
             b -> close()
         ).dimensions(mid - SCREEN_BUTTON_CENTER, height - SCREEN_BUTTON_BOTTOM, BUTTON_WIDTH_SMALL, BUTTON_HEIGHT).build());
     }
-    
+
     @Override
     public void render(DrawContext dc, int mx, int my, float t) {
         super.render(dc, mx, my, t);
-        
+
         dc.drawCenteredTextWithShadow(
             this.textRenderer,
             "PowerHUD Settings",
@@ -293,16 +330,29 @@ public class PowerHudConfigScreen extends Screen {
             SCREEN_TITLE_Y,
             COLOR_TEXT_WHITE
         );
-        
+
+        // Render tooltips
+        for (TooltipArea tip : tooltips) {
+            if (mx >= tip.x && mx <= tip.x + tip.w && my >= tip.y && my <= tip.y + tip.h) {
+                dc.drawTooltip(
+                    this.textRenderer,
+                    Text.literal(tip.text),
+                    mx - 160,
+                    my - 10
+                );
+            }
+        }
+
+        // Render ABOUT section content
         if (currentCategory == Category.ABOUT) {
             int rX = this.width / 2 + SCREEN_CENTER_OFFSET;
             int startY = UI_START_Y;
             int p = SPACING_PADDING;
             int boxW = ABOUT_BOX_WIDTH;
             int boxH = ABOUT_BOX_HEIGHT;
-            
+
             dc.fill(rX, startY, rX + boxW, startY + boxH, COLOR_BACKGROUND_DARK);
-            
+
             dc.drawTextWithShadow(
                 this.textRenderer,
                 "PowerHUD",
@@ -310,7 +360,7 @@ public class PowerHudConfigScreen extends Screen {
                 startY + p,
                 COLOR_TEXT_GOLD
             );
-            
+
             dc.drawTextWithShadow(
                 this.textRenderer,
                 modVer,
@@ -318,7 +368,7 @@ public class PowerHudConfigScreen extends Screen {
                 startY + p + ABOUT_TEXT_SPACING,
                 COLOR_TEXT_GRAY
             );
-            
+
             String[] lines = {
                 "PowerHud is customizable HUD",
                 "providing extra info if required.",
@@ -326,7 +376,7 @@ public class PowerHudConfigScreen extends Screen {
                 "QR code below to donate towards",
                 "a coffee."
             };
-            
+
             int ty = startY + p + ABOUT_TEXT_OFFSET;
             for (String line : lines) {
                 int lineW = this.textRenderer.getWidth(line);
@@ -339,7 +389,7 @@ public class PowerHudConfigScreen extends Screen {
                 );
                 ty += ABOUT_TEXT_SPACING;
             }
-            
+
             ty += 6;
             String sStr = "Support - watkins.steve@gmail.com";
             int sW = this.textRenderer.getWidth(sStr);
@@ -350,7 +400,7 @@ public class PowerHudConfigScreen extends Screen {
                 ty,
                 COLOR_TEXT_DARK_GRAY
             );
-            
+
             Identifier qr = Identifier.of("powerhud", "textures/coffee_qr.png");
             dc.drawTexture(
                 RenderLayer::getGuiTextured,
@@ -365,23 +415,12 @@ public class PowerHudConfigScreen extends Screen {
                 ABOUT_QR_SIZE
             );
         }
-        
-        // Render tooltips
-        for (TooltipArea tip : tooltips) {
-            if (mx >= tip.x && mx <= tip.x + tip.w && my >= tip.y && my <= tip.y + tip.h) {
-                dc.drawTooltip(
-                    this.textRenderer,
-                    Text.literal(tip.text),
-                    mx - 160,
-                    my - 10
-                );
-            }
-        }
     }
     
     @Override
     protected void clearAndInit() {
         clearChildren();
+        profileNameField = null;
         init();
     }
     
@@ -454,5 +493,28 @@ public class PowerHudConfigScreen extends Screen {
                 clearAndInit();
             }
         ).dimensions(x + w - 11, y, BUTTON_WIDTH_MINI, h).build());
+    }
+
+    private void addLabel(int x, int y, String text, int w, int h) {
+        addDrawableChild(ButtonWidget.builder(
+            Text.literal(text),
+            b -> {}
+        ).dimensions(x, y, w, h).build()).active = false;
+    }
+
+    private void addTextInput(int x, int y, String label, String def, int w, int h, Consumer<String> onSubmit) {
+        addDrawableChild(ButtonWidget.builder(
+            Text.literal(label + ": " + def),
+            b -> {}
+        ).dimensions(x, y, w, h).build()).active = false;
+
+        // TODO: Implement actual text input field and logic
+    }
+
+    private void addButton(int x, int y, String label, int w, int h, Consumer<ButtonWidget> action) {
+        addDrawableChild(ButtonWidget.builder(
+            Text.literal(label),
+            action::accept
+        ).dimensions(x, y, w, h).build());
     }
 }

@@ -175,6 +175,10 @@ public class PowerHudConfig {
     private static final Path CONFIG_FILE = FabricLoader.getInstance()
         .getConfigDir()
         .resolve("powerhud.json");
+    private static final Path PROFILES_DIR = FabricLoader.getInstance()
+        .getConfigDir()
+        .resolve("powerhud")
+        .resolve("profiles");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     
     private static class ConfigData {
@@ -290,5 +294,136 @@ public class PowerHudConfig {
         } catch (IOException e) {
             System.err.println("Failed to save PowerHUD config: " + e.getMessage());
         }
+    }
+    // Profile Management
+    public static class ProfileData {
+        ConfigData config;
+        String profileName;
+        long savedTimestamp;
+        public ProfileData(String name) {
+            this.profileName = name;
+            this.config = new ConfigData();
+            this.savedTimestamp = System.currentTimeMillis();
+        }
+    }
+    public static List<String> listProfiles() {
+        List<String> profiles = new ArrayList<>();
+        if (!PROFILES_DIR.toFile().exists()) {
+            return profiles;
+        }
+        File[] files = PROFILES_DIR.toFile().listFiles((dir, name) -> name.endsWith(".json"));
+        if (files != null) {
+            for (File file : files) {
+                String name = file.getName().replace(".json", "");
+                profiles.add(name);
+            }
+        }
+        profiles.sort(String::compareToIgnoreCase);
+        return profiles;
+    }
+    public static boolean saveProfile(String profileName) {
+        String sanitized = sanitizeProfileName(profileName);
+        if (sanitized.isEmpty()) {
+            System.err.println("Invalid profile name: " + profileName);
+            return false;
+        }
+        try {
+            PROFILES_DIR.toFile().mkdirs();
+            ProfileData profile = new ProfileData(sanitized);
+            Path profileFile = PROFILES_DIR.resolve(sanitized + ".json");
+            try (Writer writer = new FileWriter(profileFile.toFile())) {
+                GSON.toJson(profile, writer);
+            }
+            System.out.println("Profile saved: " + sanitized);
+            return true;
+        } catch (IOException e) {
+            System.err.println("Failed to save profile: " + e.getMessage());
+            return false;
+        }
+    }
+    public static boolean loadProfile(String profileName) {
+        String sanitized = sanitizeProfileName(profileName);
+        Path profileFile = PROFILES_DIR.resolve(sanitized + ".json");
+        if (!profileFile.toFile().exists()) {
+            System.err.println("Profile not found: " + sanitized);
+            return false;
+        }
+        try (Reader reader = new FileReader(profileFile.toFile())) {
+            ProfileData profile = GSON.fromJson(reader, ProfileData.class);
+            if (profile == null || profile.config == null) {
+                System.err.println("Invalid profile data: " + sanitized);
+                return false;
+            }
+            ConfigData data = profile.config;
+            hudEnabled = data.hudEnabled;
+            showFps = data.showFps;
+            showCoords = data.showCoords;
+            showDirection = data.showDirection;
+            showBiome = data.showBiome;
+            showTime = data.showTime;
+            showVitality = data.showVitality;
+            showBlock = data.showBlock;
+            showInventory = data.showInventory;
+            showOxygen = data.showOxygen;
+            showGamemode = data.showGamemode;
+            hideVanillaOxygen = data.hideVanillaOxygen;
+            enableF3Replacement = data.enableF3Replacement;
+            showFpsDot = data.showFpsDot;
+            showBestTool = data.showBestTool;
+            showBlockStats = data.showBlockStats;
+            fpsPulse = data.fpsPulse;
+            boldTitles = data.boldTitles;
+            fpsMode = data.fpsMode;
+            boxStyle = data.boxStyle;
+            inventoryMode = data.inventoryMode;
+            hudScaleVert = data.hudScaleVert;
+            themeIndex = data.themeIndex;
+            lineSpacing = data.lineSpacing;
+            redThresh = data.redThresh;
+            orangeThresh = data.orangeThresh;
+            yellowThresh = data.yellowThresh;
+            fontIndex = data.fontIndex;
+            titleColorIndex = data.titleColorIndex;
+            oxygenOverlayY = data.oxygenOverlayY;
+            hudOrder = data.hudOrder != null ? new ArrayList<>(data.hudOrder) : new ArrayList<>();
+            layoutSlots = data.layoutSlots != null ? new ArrayList<>(data.layoutSlots) : new ArrayList<>(
+                Arrays.asList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>())
+            );
+            save();
+            System.out.println("Profile loaded: " + sanitized);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Failed to load profile: " + e.getMessage());
+            return false;
+        }
+    }
+    public static boolean deleteProfile(String profileName) {
+        String sanitized = sanitizeProfileName(profileName);
+        Path profileFile = PROFILES_DIR.resolve(sanitized + ".json");
+        if (!profileFile.toFile().exists()) {
+            System.err.println("Profile not found: " + sanitized);
+            return false;
+        }
+        try {
+            boolean deleted = profileFile.toFile().delete();
+            if (deleted) {
+                System.out.println("Profile deleted: " + sanitized);
+            }
+            return deleted;
+        } catch (Exception e) {
+            System.err.println("Failed to delete profile: " + e.getMessage());
+            return false;
+        }
+    }
+    private static String sanitizeProfileName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return "";
+        }
+        String sanitized = name.trim().replace(" ", "_");
+        sanitized = sanitized.replaceAll("[^a-zA-Z0-9_-]", "");
+        if (sanitized.length() > 32) {
+            sanitized = sanitized.substring(0, 32);
+        }
+        return sanitized;
     }
 }
