@@ -40,7 +40,12 @@ public class HudData {
         if (minFps == -1 || currentFps < minFps) minFps = currentFps;
         if (maxFps == -1 || currentFps > maxFps) maxFps = currentFps;
         frames++; totalFps += currentFps; avgFps = (float)totalFps / frames;
-        fpsStr = switch(PowerHudConfig.fpsMode) { case MINIMAL -> String.valueOf(currentFps); case NORMAL -> currentFps + " [~" + (int)avgFps + "]"; case FULL -> currentFps + " [v" + minFps + " ^" + maxFps + "]"; };
+        float frameTimeMs = currentFps > 0 ? 1000.0f / currentFps : 0;
+        fpsStr = switch(PowerHudConfig.fpsMode) {
+            case MINIMAL -> "FPS:" + currentFps;
+            case NORMAL -> "FPS:" + currentFps + " AVG:" + (int)avgFps + " MIN:" + minFps + " MAX:" + maxFps;
+            case FULL -> "FPS:" + currentFps + " AVG:" + (int)avgFps + " MIN:" + minFps + " MAX:" + maxFps + " (" + String.format("%.1f", frameTimeMs) + "ms)";
+        };
         fpsColor = (currentFps < PowerHudConfig.redThresh ? 0xFFFF5555 : (currentFps < PowerHudConfig.orangeThresh ? 0xFFFFAA00 : (currentFps < PowerHudConfig.yellowThresh ? 0xFFFFFF55 : 0xFF55FF55)));
         invCount = 0; for(int i=0; i<27; i++) { boolean has = !client.player.getInventory().main.get(i+9).isEmpty(); invSlots[i]=has; if(has) invCount++; }
         invStr = switch(PowerHudConfig.inventoryMode) { case PERCENT -> (int)((invCount / 27.0) * 100) + "%"; case FRACTION -> invCount + "/27"; default -> invCount + " Slots"; };
