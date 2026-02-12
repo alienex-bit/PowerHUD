@@ -91,7 +91,34 @@ public class HudData {
             }
         }
         int air = client.player.getAir(); int maxAir = client.player.getMaxAir(); oxyPercent = (float)air / (float)maxAir;
-        if (isSubmerged || air < maxAir) { if (air >= maxAir * 0.8) { oxyStr = "Holding Breath..."; oxyColor = 0xFF55FF55; } else if (air >= maxAir * 0.5) { oxyStr = "Air Depleting..."; oxyColor = 0xFFFFFF55; } else if (air >= maxAir * 0.25) { oxyStr = "Supply Low"; oxyColor = 0xFFFF5555; } else { oxyStr = "RISK OF DROWNING"; oxyColor = 0xFFFF5555; } } else { oxyStr = ""; }
+        if (isSubmerged || air < maxAir) {
+            String status;
+            if (air >= maxAir * 0.8) {
+                oxyColor = 0xFF55FF55;
+                status = "Safe";
+            } else if (air >= maxAir * 0.5) {
+                oxyColor = 0xFFFFFF55;
+                status = "Caution";
+            } else if (air >= maxAir * 0.25) {
+                oxyColor = 0xFFFF8800;
+                status = "Low";
+            } else {
+                oxyColor = 0xFFFF5555;
+                status = "CRITICAL";
+            }
+
+            // Generate bar (10 characters wide)
+            int barLength = 10;
+            int filled = (int)(barLength * oxyPercent);
+            StringBuilder bar = new StringBuilder();
+            for (int i = 0; i < barLength; i++) {
+                bar.append(i < filled ? "█" : "░");
+            }
+
+            oxyStr = "◆ Oxygen: " + bar.toString() + " [" + status + "]";
+        } else {
+            oxyStr = "";
+        }
     }
     private static void processBlock(BlockState state) {
         targetType = "Block"; blockStr = state.getBlock().getName().getString();

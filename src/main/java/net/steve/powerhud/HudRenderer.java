@@ -212,41 +212,20 @@ public class HudRenderer implements HudRenderCallback {
                 
                 currentY += INV_HEIGHT_TOTAL;
             }
-            // Special handling for oxygen bar
+            // Special handling for oxygen (now single line format)
             else if (item.id.equals("OXY")) {
-                int barW = getWidth(TEXT_OXYGEN_HOLDING, ren, false);
-                int modX = (align == ALIGN_LEFT) ? SPACING_HUD_TOP 
-                    : (align == ALIGN_CENTER ? (sw/2 - barW/2) 
-                    : sw - barW - SPACING_HUD_TOP);
-                String previewVal = item.value.equals(TEXT_PREVIEW) ? TEXT_OXYGEN_HOLDING : item.value;
-                
-                int barColor = (item.valColor & RGB_MASK) | COLOR_BACKGROUND_SEMI;
-                int fillW = (int)((barW + 6) * HudData.oxyPercent);
-                
-                if (fillW > 0) {
-                    dc.fill(
-                        modX - SPACING_MINI,
-                        currentY - SPACING_MINI,
-                        (modX - SPACING_MINI) + fillW,
-                        currentY + OXY_BAR_HEIGHT + hAdj + 1,
-                        barColor
-                    );
+                int lineW = getWidth(item.value, ren, false);
+                int modX = (align == ALIGN_LEFT) ? SPACING_HUD_TOP
+                    : (align == ALIGN_CENTER ? (sw/2 - lineW/2)
+                    : sw - lineW - SPACING_HUD_TOP);
+
+                boolean shouldRender = HudOrderScreen.isWorkbenchActive
+                    || !item.value.isEmpty();
+
+                if (shouldRender) {
+                    drawStyledText(dc, ren, item.value, modX, currentY + hAdj, item.valColor, s, false, now);
+                    currentY += spacing;
                 }
-                
-                drawStyledText(dc, ren, item.title, modX, currentY + hAdj, tColor, s, PowerHudConfig.boldTitles, now);
-                drawStyledText(
-                    dc,
-                    ren,
-                    previewVal,
-                    modX + (barW - getWidth(previewVal, ren, false)) / 2,
-                    currentY + hAdj + OXY_BAR_OFFSET,
-                    COLOR_TEXT_WHITE,
-                    s,
-                    false,
-                    now
-                );
-                
-                currentY += spacing;
             }
             // Standard line rendering
             else {
