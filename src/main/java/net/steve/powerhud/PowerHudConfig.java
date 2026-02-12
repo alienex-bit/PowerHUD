@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static net.steve.powerhud.HudConstants.*;
+
 public class PowerHudConfig {
     // Enums
     public enum FpsMode { MINIMAL, NORMAL, FULL }

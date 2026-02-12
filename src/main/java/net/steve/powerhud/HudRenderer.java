@@ -91,6 +91,11 @@ public class HudRenderer implements HudRenderCallback {
             F3ScreenRenderer.render(dc, PowerHudConfig.debugTab);
         }
         
+        // Avoid double-rendering while the HUD workbench is open
+        if (HudOrderScreen.isWorkbenchActive) {
+            return;
+        }
+
         // Don't render HUD if disabled or hidden
         if (!PowerHudConfig.hudEnabled || client.options.hudHidden) {
             return;
@@ -131,13 +136,10 @@ public class HudRenderer implements HudRenderCallback {
             
             // Calculate absolute position
             int x = entry.x;
-            if (x < 0) {
-                x = sw + x; // Negative = from right edge
-            }
             int y = entry.y;
 
             // Render element at position
-            renderElementAt(dc, ren, entry.id, line, x, y, tColor, theme, s, now, hAdj);
+            renderElementAt(dc, ren, entry.id, line, x, y, tColor, theme, s, now, hAdj, sw);
         }
 
         // Render oxygen as standalone centered overlay
@@ -159,17 +161,23 @@ public class HudRenderer implements HudRenderCallback {
         int theme,
         float s,
         long now,
-        int hAdj
+        int hAdj,
+        int sw
     ) {
+        if (id.equals(TEXT_SPACE)) {
+            return;
+        }
         // Special handling for inventory grid mode
         if (id.equals("INV") && PowerHudConfig.inventoryMode == PowerHudConfig.InventoryMode.GRID) {
-            drawStyledText(dc, ren, "Inventory", x, y, tColor, s, PowerHudConfig.boldTitles, now);
+            int titleW = getWidth("Inventory", ren, PowerHudConfig.boldTitles);
+            int renderX = resolveX(x, Math.max(titleW, INV_GRID_WIDTH), sw);
+            drawStyledText(dc, ren, "Inventory", renderX, y, tColor, s, PowerHudConfig.boldTitles, now);
 
             // Draw inventory grid
             for (int r = 0; r < INV_ROWS; r++) {
                 for (int c = 0; c < INV_COLS; c++) {
                     int i = r * INV_COLS + c;
-                    int sx = x + (int)(c * INV_SLOT_SPACING);
+                    int sx = renderX + (int)(c * INV_SLOT_SPACING);
                     int sy = y + INV_GRID_OFFSET + (int)(r * INV_SLOT_SPACING);
 
                     dc.fill(
@@ -189,6 +197,9 @@ public class HudRenderer implements HudRenderCallback {
         int dotW = (id.equals("FPS") && PowerHudConfig.showFpsDot) ? HUD_DOT_WIDTH : 0;
         int iconW = (id.equals("TOOL") && !HudData.toolStack.isEmpty()) ? HUD_ICON_WIDTH : 0;
         int titleW = line.title.isEmpty() ? 0 : getWidth(line.title + ": ", ren, PowerHudConfig.boldTitles);
+        int totalW = titleW + dotW + valW + iconW;
+
+        int renderX = resolveX(x, totalW, sw);
 
         boolean shouldRender = HudOrderScreen.isWorkbenchActive
             || (!(id.equals("BLOCK") && line.value.equals(TEXT_AIR))
@@ -196,7 +207,7 @@ public class HudRenderer implements HudRenderCallback {
             && !line.value.isEmpty());
 
         if (shouldRender) {
-            int curX = x;
+            int curX = renderX;
 
             // Only render title if it's not empty
             if (!line.title.isEmpty()) {
@@ -225,6 +236,19 @@ public class HudRenderer implements HudRenderCallback {
                 dc.drawItem(HudData.toolStack, curX + valW + HUD_ICON_OFFSET, y + hAdj - HUD_ICON_OFFSET);
             }
         }
+    }
+
+    private int resolveX(int x, int width, int sw) {
+        if (x == HUD_X_CENTER_SENTINEL) {
+            return (sw - width) / 2;
+        }
+        if (x == HUD_X_RIGHT_SENTINEL) {
+            return sw - width - HUD_X_RIGHT_MARGIN;
+        }
+        if (x < 0) {
+            return sw + x;
+        }
+        return x;
     }
 
     private void renderCol(
@@ -346,6 +370,7 @@ public class HudRenderer implements HudRenderCallback {
                 : new HudLineRaw("Oxygen", HudData.oxyStr.isEmpty() ? TEXT_OXYGEN_HOLDING : HudData.oxyStr, HudData.oxyColor));
             case "BLOCK_STATS" -> new HudLineRaw("Blocks", HudData.blockStatsStr, theme);
             case "GAMEMODE" -> new HudLineRaw("Mode", HudData.gamemodeStr, theme);
+            case "SPACE" -> new HudLineRaw("", "", theme);
             default -> null;
         };
     }
@@ -390,12 +415,20 @@ public class HudRenderer implements HudRenderCallback {
         dc.drawText(ren, Text.literal(t).setStyle(st), x, y, c, false);
     }
 
-    private int getWidth(String t, TextRenderer ren, boolean b) {
+    public static Identifier getHudFont() {
+        return FONTS[PowerHudConfig.fontIndex];
+    }
+
+    public static int getHudTextWidth(TextRenderer ren, String text, boolean bold) {
         return ren.getWidth(
-            Text.literal(t).setStyle(
-                Style.EMPTY.withFont(FONTS[PowerHudConfig.fontIndex]).withBold(b)
+            Text.literal(text).setStyle(
+                Style.EMPTY.withFont(getHudFont()).withBold(bold)
             )
         );
+    }
+
+    private int getWidth(String t, TextRenderer ren, boolean b) {
+        return getHudTextWidth(ren, t, b);
     }
 
     private void renderOxygenOverlay(DrawContext dc, TextRenderer ren, int sw, float s, int theme) {
@@ -458,8 +491,11 @@ public class HudRenderer implements HudRenderCallback {
             case "OXY" -> PowerHudConfig.showOxygen;
             case "BLOCK_STATS" -> PowerHudConfig.showBlockStats;
             case "GAMEMODE" -> PowerHudConfig.showGamemode;
+            case "SPACE" -> true;
             default -> false;
         };
     }
 }
+
+
 

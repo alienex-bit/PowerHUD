@@ -157,6 +157,14 @@ public class HudConstants {
     public static final String TEXT_AIR = "Air";
     public static final String TEXT_OXYGEN_HOLDING = "Holding Breath...";
     
+    // ==================== HUD POSITIONING ====================
+
+    // HUD positioning sentinels and margins
+    public static final int HUD_X_LEFT_MARGIN = 10;
+    public static final int HUD_X_RIGHT_MARGIN = 10;
+    public static final int HUD_X_CENTER_SENTINEL = -200000;
+    public static final int HUD_X_RIGHT_SENTINEL = -200001;
+
     // ==================== UTILITY METHODS ====================
     
     /**
