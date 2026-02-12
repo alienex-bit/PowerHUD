@@ -147,7 +147,10 @@ Found a bug or need help?
 
 ## 📊 Version History
 
-- **v1.11.1** - Latest release (February 12, 2026)
+- **v1.11.2** - Latest release (February 12, 2026)
+  - **FIXED: Vanilla air bubble hiding** - Now properly hides all air bubble states (full, bursting, empty) when toggle is off
+
+- **v1.11.1** - Previous release (February 12, 2026)
   - **NEW: WYSIWYG HUD Workbench** - Visual drag-and-drop editor with live preview
   - **NEW: Zone-Based Snapping** - Elements auto-snap to left, center, or right screen zones
   - **NEW: Spacer Elements** - Add flexible vertical spacing between elements

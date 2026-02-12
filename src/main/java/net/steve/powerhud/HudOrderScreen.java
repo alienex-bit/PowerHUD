@@ -339,6 +339,12 @@ public class HudOrderScreen extends Screen {
             int totalWidth = ELEMENTS_PER_ROW * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING);
             int paletteStartX = (this.width - totalWidth) / 2;
 
+            // Build set of placed element IDs for O(1) lookup
+            Set<String> placedIds = new HashSet<>();
+            for (PowerHudConfig.LayoutEntry entry : tempOrder) {
+                placedIds.add(entry.id);
+            }
+
             for (int i = 0; i < ALL_ELEMENTS.length; i++) {
                 String elementId = ALL_ELEMENTS[i];
                 int row = i / ELEMENTS_PER_ROW;
@@ -347,8 +353,7 @@ public class HudOrderScreen extends Screen {
                 int btnY = paletteY + 20 + row * (ELEMENT_BUTTON_HEIGHT + ELEMENT_SPACING);
 
                 // Skip if element already placed (except spacer)
-                boolean alreadyPlaced = !elementId.equals("SPACE")
-                    && tempOrder.stream().anyMatch(e -> e.id.equals(elementId));
+                boolean alreadyPlaced = !elementId.equals("SPACE") && placedIds.contains(elementId);
                 if (alreadyPlaced) continue;
 
                 if (mouseX >= btnX && mouseX <= btnX + ELEMENT_BUTTON_WIDTH &&
@@ -361,8 +366,6 @@ public class HudOrderScreen extends Screen {
                     );
                     tempOrder.add(newEntry);
                     draggedElement = newEntry;
-                    dragOffsetX = 40;
-                    dragOffsetY = 10;
                     isDragging = true;
                     return true;
                 }
@@ -417,8 +420,6 @@ public class HudOrderScreen extends Screen {
         int hudMouseX = (int)(mx / s);
         int hudMouseY = (int)(my / s);
 
-        // Keep data fresh for accurate bounds
-        HudData.update(MinecraftClient.getInstance());
 
         // Render live HUD preview with current positions (only if tempOrder has elements)
         if (!tempOrder.isEmpty()) {
@@ -471,6 +472,12 @@ public class HudOrderScreen extends Screen {
         int paletteStartX = (this.width - totalWidth) / 2;
         hoveredPaletteElement = null;
 
+        // Build set of placed element IDs for O(1) lookup
+        Set<String> placedIds = new HashSet<>();
+        for (PowerHudConfig.LayoutEntry entry : tempOrder) {
+            placedIds.add(entry.id);
+        }
+
         for (int i = 0; i < ALL_ELEMENTS.length; i++) {
             String elementId = ALL_ELEMENTS[i];
             int row = i / ELEMENTS_PER_ROW;
@@ -478,8 +485,7 @@ public class HudOrderScreen extends Screen {
             int btnX = paletteStartX + col * (ELEMENT_BUTTON_WIDTH + ELEMENT_SPACING);
             int btnY = paletteY + 20 + row * (ELEMENT_BUTTON_HEIGHT + ELEMENT_SPACING);
 
-            boolean alreadyPlaced = !elementId.equals("SPACE")
-                && tempOrder.stream().anyMatch(e -> e.id.equals(elementId));
+            boolean alreadyPlaced = !elementId.equals("SPACE") && placedIds.contains(elementId);
             boolean hovered = mx >= btnX && mx <= btnX + ELEMENT_BUTTON_WIDTH &&
                             my >= btnY && my <= btnY + ELEMENT_BUTTON_HEIGHT;
 

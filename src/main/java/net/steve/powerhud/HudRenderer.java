@@ -112,7 +112,6 @@ public class HudRenderer implements HudRenderCallback {
         dc.getMatrices().push();
         dc.getMatrices().scale(s, s, MATRIX_SCALE_Z);
         int sw = (int)(client.getWindow().getScaledWidth() / s);
-        int sh = (int)(client.getWindow().getScaledHeight() / s);
 
         long now = System.currentTimeMillis();
         int tColor = PowerHudConfig.COLORS[PowerHudConfig.titleColorIndex];
@@ -142,12 +141,13 @@ public class HudRenderer implements HudRenderCallback {
             renderElementAt(dc, ren, entry.id, line, x, y, tColor, theme, s, now, hAdj, sw);
         }
 
-        // Render oxygen as standalone centered overlay
-        if (PowerHudConfig.showOxygen) {
-            renderOxygenOverlay(dc, ren, sw, s, theme);
-        }
-
         dc.getMatrices().pop();
+
+        // Render oxygen as standalone centered overlay OUTSIDE the scaled matrix
+        // This ensures consistent positioning regardless of HUD scale or vanilla air bubble state
+        if (PowerHudConfig.showOxygen) {
+            renderOxygenOverlay(dc, ren, client.getWindow().getScaledWidth());
+        }
     }
 
     private void renderElementAt(
@@ -431,7 +431,7 @@ public class HudRenderer implements HudRenderCallback {
         return getHudTextWidth(ren, t, b);
     }
 
-    private void renderOxygenOverlay(DrawContext dc, TextRenderer ren, int sw, float s, int theme) {
+    private void renderOxygenOverlay(DrawContext dc, TextRenderer ren, int sw) {
         String overlay = HudData.oxyOverlayStr;
         String status = HudData.oxyStatusStr;
 
@@ -441,7 +441,7 @@ public class HudRenderer implements HudRenderCallback {
         }
 
         long now = System.currentTimeMillis();
-        int sh = (int)(MinecraftClient.getInstance().getWindow().getScaledHeight() / s);
+        int sh = MinecraftClient.getInstance().getWindow().getScaledHeight();
 
         // Build the centered message
         String centerMsg = "Oxygen: " + overlay + " - " + status;
@@ -474,7 +474,7 @@ public class HudRenderer implements HudRenderCallback {
         dc.drawText(ren, Text.literal(centerMsg).setStyle(Style.EMPTY.withFont(FONTS[PowerHudConfig.fontIndex])),
             textX + 1, textY + 1, 0xFF000000, false);
         // Draw main text in white
-        drawStyledText(dc, ren, centerMsg, textX, textY, 0xFFFFFFFF, s, false, now);
+        drawStyledText(dc, ren, centerMsg, textX, textY, 0xFFFFFFFF, 1.0f, false, now);
     }
 
     private boolean shouldShow(String id) {

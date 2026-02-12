@@ -16,6 +16,7 @@ public class DrawContextMixin {
     // OPTIMIZATION: Pre-define the identifier constant to avoid string comparisons
     private static final Identifier AIR_TEXTURE = Identifier.ofVanilla("hud/air");
     private static final Identifier AIR_BURSTING_TEXTURE = Identifier.ofVanilla("hud/air_bursting");
+    private static final Identifier AIR_EMPTY_TEXTURE = Identifier.ofVanilla("hud/air_empty");
 
     @Inject(method = "drawGuiTexture(Ljava/util/function/Function;Lnet/minecraft/util/Identifier;IIII)V", at = @At("HEAD"), cancellable = true)
     private void onDrawGuiTexture(Function<Identifier, RenderLayer> renderLayers, Identifier texture, int x, int y, int width, int height, CallbackInfo ci) {
@@ -23,7 +24,7 @@ public class DrawContextMixin {
         if (!PowerHudConfig.hideVanillaOxygen) return;
 
         // Optimization: Identity check is faster than string check
-        if (texture.equals(AIR_TEXTURE) || texture.equals(AIR_BURSTING_TEXTURE)) {
+        if (texture.equals(AIR_TEXTURE) || texture.equals(AIR_BURSTING_TEXTURE) || texture.equals(AIR_EMPTY_TEXTURE)) {
             ci.cancel();
         }
     }
