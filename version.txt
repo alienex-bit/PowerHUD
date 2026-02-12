@@ -1,4 +1,4 @@
-﻿PowerHUD Version Information
+﻿﻿PowerHUD Version Information
 ============================
 Version: 1.11.3
 Build Date: 2026-02-12
@@ -8,6 +8,6 @@ Fabric API: 0.110.0+1.21.4
 
 PowerHUD v1.11.3
 Released: 2026-02-12
-- Added HUD profile management (save/load/delete)
+- **NEW:** HUD profile management (save/load/delete custom layouts)
 - Improved oxygen overlay UI and color handling
 - UI fixes and performance improvements

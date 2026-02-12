@@ -11,7 +11,7 @@ PowerHUD is a Minecraft Fabric mod for Minecraft 1.21.4 that provides a customiz
 - 9 fonts, 20+ colors, bold titles, HUD scale, element ordering (drag-and-drop)
 - FPS display: Minimal, Normal, Full modes with color thresholds
 - Inventory modes: Percent, Value, Boxes
-- Profiles: Save/load/delete HUD layouts
+- **Profiles:** Save/load/delete HUD layouts for quick switching between custom setups
 - Clean, performant rendering (DrawContext, ARGB colors)
 - All settings persist via config/powerhud.json
 
@@ -33,7 +33,7 @@ PowerHUD is a Minecraft Fabric mod for Minecraft 1.21.4 that provides a customiz
 Contact: watkins.steve@gmail.com
 
 ## Changelog
-- 1.11.3: Added HUD profile management, improved oxygen overlay, UI fixes
+- 1.11.3: **Added HUD profile management (save/load/delete), improved oxygen overlay, UI fixes**
 - 1.10.1: Minimalist redesign, performance improvements, removed text effects/shadows
 
 ## License
