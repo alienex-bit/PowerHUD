@@ -35,6 +35,7 @@ A modern, highly customizable HUD overlay mod for Minecraft Fabric 1.21.4
 - **Spacer Elements** - Add flexible spacing between HUD elements
 - **Adjustable Scaling** - Resize HUD elements to your preference (works at any scale)
 - **Bold Title Toggle** - Enable/disable bold formatting for element titles
+- **HUD Profiles** - Save/load/delete HUD layouts for quick switching between custom setups. Instantly switch between different HUD configurations and layouts. Profiles are stored and can be restored at any time, making it easy to experiment or revert to a favorite layout.
 
 ## 🎮 Default Keybindings
 
@@ -79,6 +80,7 @@ Press \O\ in-game to open the configuration screen.
 - **FPS Tweaks** - Configure display mode (Minimal/Normal/Full), thresholds, and animated dot indicator
 - **Inventory Tweaks** - Choose display style (Grid/Percent/Fraction)
 - **Oxygen Settings** - Adjust centered overlay position with color-coded bar and toggle vanilla air bubbles
+- **HUD Profiles** - Save/load/delete HUD layouts for quick switching between custom setups
 
 ## 🖼️ Screenshots
 
@@ -111,7 +113,7 @@ Press \O\ in-game to open the configuration screen.
 - Git
 
 ### Build Steps
-\\\ash
+\ash
 # Clone the repository
 git clone https://github.com/alienex-bit/PowerHUD.git
 cd PowerHUD
@@ -121,15 +123,15 @@ gradlew.bat build
 
 # Build the mod (Linux/Mac)
 ./gradlew build
-\\\
+\
 
-The compiled JAR will be located in \uild/libs/\
+The compiled JAR will be located in \build/libs\
 
 ### Development Environment
-\\\ash
+\ash
 # Run Minecraft client with mod loaded
 gradlew.bat runClient
-\\\
+\
 
 ## 📋 Roadmap
 
@@ -167,15 +169,25 @@ Found a bug or need help?
 
 ## 📊 Version History
 
-- **v1.11.2** - Latest release (February 12, 2026)
+- **v1.11.4** - Latest release (February 12, 2026)
+  - **NEW: HUD Profiles** - Save/load/delete HUD layouts for quick switching between custom setups. Instantly switch between different HUD configurations and layouts. Profiles are stored and can be restored at any time, making it easy to experiment or revert to a favorite layout.
+  - **IMPROVED: Oxygen overlay UI** - Lighter opacity, always fixed width, improved text contrast
+  - **IMPROVED: HUD Workbench** - Drag boxes align exactly with HUD bounds at any scale
+  - **IMPROVED: Persistence** - Settings reliably save and restore
   - **FIXED: Vanilla air bubble hiding** - Now properly hides all air bubble states (full, bursting, empty) when toggle is off
 
+- **v1.11.3** - Previous release (February 12, 2026)
+  - Added HUD profile management (save/load/delete), improved oxygen overlay, UI fixes
+
+- **v1.11.2** - Previous release (February 12, 2026)
+  - FIXED: Vanilla air bubble hiding - Now properly hides all air bubble states (full, bursting, empty) when toggle is off
+
 - **v1.11.1** - Previous release (February 12, 2026)
-  - **NEW: WYSIWYG HUD Workbench** - Visual drag-and-drop editor with live preview
-  - **NEW: Zone-Based Snapping** - Elements auto-snap to left, center, or right screen zones
-  - **NEW: Spacer Elements** - Add flexible vertical spacing between elements
-  - **IMPROVED: Hitbox Alignment** - Drag/hover boxes now align precisely with HUD text at any scale
-  - **FIXED: Critical NPE crash** when opening HUD workbench
+  - NEW: WYSIWYG HUD Workbench - Visual drag-and-drop editor with live preview
+  - NEW: Zone-Based Snapping - Elements auto-snap to left, center, or right screen zones
+  - NEW: Spacer Elements - Add flexible vertical spacing between elements
+  - IMPROVED: Hitbox Alignment - Drag/hover boxes now align precisely with HUD text at any scale
+  - FIXED: Critical NPE crash when opening HUD workbench
   - Auto-stacking elements in each zone with proper spacing
   - Elements shift automatically when dragged between positions
   - Version auto-displayed in About screen via Fabric metadata
