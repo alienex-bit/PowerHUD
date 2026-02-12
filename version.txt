@@ -1,13 +1,13 @@
 ﻿﻿PowerHUD Version Information
 ============================
-Version: 1.11.3
+Version: 1.11.4
 Build Date: 2026-02-12
 Minecraft: 1.21.4
 Fabric Loader: 0.16.9
 Fabric API: 0.110.0+1.21.4
 
-PowerHUD v1.11.3
+PowerHUD v1.11.4
 Released: 2026-02-12
-- **NEW:** HUD profile management (save/load/delete custom layouts)
-- Improved oxygen overlay UI and color handling
-- UI fixes and performance improvements
+- Profiles feature improved and documented
+- Version bump for documentation and changelog
+- All previous features retained
