@@ -267,14 +267,16 @@ public class HudOrderScreen extends Screen {
         // Semi-transparent overlay
         dc.fill(0, 0, this.width, this.height, 0x80000000);
 
-        // Render live HUD preview with current positions
-        List<PowerHudConfig.LayoutEntry> backup = PowerHudConfig.hudOrder;
-        PowerHudConfig.hudOrder = tempOrder;
-        
-        new HudRenderer().renderMainHud(dc, MinecraftClient.getInstance());
-        
-        PowerHudConfig.hudOrder = backup;
-        
+        // Render live HUD preview with current positions (only if tempOrder has elements)
+        if (!tempOrder.isEmpty()) {
+            List<PowerHudConfig.LayoutEntry> backup = PowerHudConfig.hudOrder;
+            PowerHudConfig.hudOrder = tempOrder;
+
+            new HudRenderer().renderMainHud(dc, MinecraftClient.getInstance());
+
+            PowerHudConfig.hudOrder = backup;
+        }
+
         // Highlight elements being hovered or dragged
         for (PowerHudConfig.LayoutEntry entry : tempOrder) {
             if (entry == draggedElement && isDragging) continue; // Don't highlight dragged element in place
