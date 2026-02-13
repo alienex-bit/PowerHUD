@@ -29,36 +29,105 @@ public class PowerHudConfig {
     public enum BoxStyle { OFF, FAINT, LIGHT, SUBTLE, MEDIUM, STRONG, DARK, SOLID }
     public enum InventoryMode { GRID, PERCENT, FRACTION }
     
-    // Color constants - 20 colors for comprehensive theming
-    public static final int[] COLORS = {
-        0xFFFFFFFF, // 0  - White
-        0xFF55FF55, // 1  - Green (Lime)
-        0xFFFFD700, // 2  - Gold
-        0xFF00FFFF, // 3  - Cyan (Aqua)
-        0xFFFF5555, // 4  - Red (Light)
-        0xFFFFFF55, // 5  - Yellow (Bright)
-        0xFF5555FF, // 6  - Blue (Fixed!)
-        0xFFAA00AA, // 7  - Purple (Dark)
-        0xFFFF55FF, // 8  - Magenta (Pink)
-        0xFFAAAAAA, // 9  - Gray (Medium)
-        0xFFFF8800, // 10 - Orange
-        0xFF00AA88, // 11 - Teal
-        0xFFAAFF00, // 12 - Lime (Bright)
-        0xFFFF88DD, // 13 - Pink (Light)
-        0xFFAADDFF, // 14 - Ice Blue
-        0xFF8855FF, // 15 - Violet
-        0xFFFFAA55, // 16 - Peach
-        0xFF55FFAA, // 17 - Mint
-        0xFFDD4444, // 18 - Crimson
-        0xFF333333  // 19 - Charcoal
+    // Color palettes for normal, color blindness, and high contrast
+    public static final int[][] COLOR_PRESETS = {
+        // Default
+        {
+            0xFFFFFFFF, 0xFF55FF55, 0xFFFFD700, 0xFF00FFFF, 0xFFFF5555,
+            0xFFFFFF55, 0xFF5555FF, 0xFFAA00AA, 0xFFFF55FF, 0xFFAAAAAA,
+            0xFFFF8800, 0xFF00AA88, 0xFFAAFF00, 0xFFFF88DD, 0xFFAADDFF,
+            0xFF8855FF, 0xFFFFAA55, 0xFF55FFAA, 0xFFDD4444, 0xFF333333
+        },
+        // Deuteranopia (Dark Blue/Yellow)
+        {
+            0xFF0000AA, // Dark Blue (Title)
+            0xFFFFFF00, // Yellow (Data)
+        },
+        // Protanopia (White/Aqua)
+        {
+            0xFFFFFFFF, // White (Title)
+            0xFF55FFFF, // Aqua (Data)
+        },
+        // Tritanopia (White/Red)
+        {
+            0xFFFFFFFF, // White (Title)
+            0xFFFF5555, // Red (Data)
+        },
+        // High Contrast (White/Yellow)
+        {
+            0xFFFFFFFF, // White (Title)
+            0xFFFFFF00, // Yellow (Data)
+        },
+        // Dyslexia/General (Light Gray/White)
+        {
+            0xFFBBBBBB, // Light Gray (Title)
+            0xFFFFFFFF, // White (Data)
+        }
     };
-    
-    public static final String[] COLOR_NAMES = {
+
+    public static final String[] COLOR_PRESET_NAMES = {
+        "Off", "Deuteranopia", "Protanopia", "Tritanopia", "High Contrast", "Dyslexia/General"
+    };
+
+    // Active color palette (default to first preset, 0 = Off/Custom)
+    public static int[] COLORS = Arrays.copyOf(COLOR_PRESETS[0], COLOR_PRESETS[0].length);
+    public static String[] COLOR_NAMES = {
         "White", "Green", "Gold", "Cyan", "Red",
         "Yellow", "Blue", "Purple", "Magenta", "Gray",
         "Orange", "Teal", "Lime", "Pink", "Ice",
         "Violet", "Peach", "Mint", "Crimson", "Charcoal"
     };
+
+    // 0 = Off, 1+ = accessibility preset
+    public static int colorPresetIndex = 0;
+
+    public static void setColorPreset(int idx) {
+        if (idx < 0 || idx >= COLOR_PRESET_NAMES.length) {
+            idx = 0;
+        }
+        int[] preset = COLOR_PRESETS[idx];
+        int[] padded = Arrays.copyOf(COLOR_PRESETS[0], 20); // Always start with Default
+        for (int i = 0; i < preset.length && i < 20; i++) {
+            padded[i] = preset[i];
+        }
+        COLORS = padded;
+        colorPresetIndex = idx;
+    }
+
+    // Helper: is an accessibility preset active?
+    public static boolean isAccessibilityPreset() {
+        return colorPresetIndex > 0;
+    }
+
+    // Helper: get accessibility preset title/data colors
+    public static int getPresetTitleColor() {
+        if (isAccessibilityPreset()) {
+            return COLORS[0];
+        }
+        // Use safe index for custom/off
+        return COLORS[safeTitleColorIndex()];
+    }
+    public static int getPresetDataColor() {
+        if (isAccessibilityPreset()) {
+            return COLORS[1];
+        }
+        // Use safe index for custom/off
+        return COLORS[safeThemeIndex()];
+    }
+    // Helper: should data be bold?
+    public static boolean isPresetBoldData() {
+        return isAccessibilityPreset();
+    }
+    // Helper: enforce dark background for accessibility
+    public static boolean forceDarkBackground() {
+        return isAccessibilityPreset();
+    }
+
+    // Helper: should manual color selection be enabled?
+    public static boolean isCustomColors() {
+        // Allow manual color selection only when Off preset is active
+        return colorPresetIndex == 0;
+    }
     
     public static final String[] FONT_NAMES = {
         "Vanilla", "JetBrains", "Roboto", "Fira", "Cascadia", 
@@ -108,7 +177,7 @@ public class PowerHudConfig {
         Arrays.asList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>())
     );
     
-    public static class LayoutEntry {
+    public static class LayoutEntry implements java.io.Serializable {
         public String id;
         public int spacerHeight;
         public int alignment;
@@ -192,9 +261,17 @@ public class PowerHudConfig {
         .getConfigDir()
         .resolve("powerhud")
         .resolve("profiles");
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final transient Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+        // Helper: safe color index for theme/title
+        public static int safeThemeIndex() {
+            return Math.max(0, Math.min(themeIndex, COLORS.length - 1));
+        }
+        public static int safeTitleColorIndex() {
+            return Math.max(0, Math.min(titleColorIndex, COLORS.length - 1));
+        }
     
     private static class ConfigData {
+        int colorPresetIndex = PowerHudConfig.colorPresetIndex;
         // Boolean fields
             // Last loaded profile
             String lastProfile = PowerHudConfig.lastProfile;
@@ -284,6 +361,10 @@ public class PowerHudConfig {
             fontIndex = data.fontIndex;
             titleColorIndex = data.titleColorIndex;
             oxygenOverlayY = data.oxygenOverlayY;
+
+            // Apply color preset
+            colorPresetIndex = data.colorPresetIndex;
+            setColorPreset(colorPresetIndex);
 
             // Apply layout settings
             hudOrder = data.hudOrder != null ? data.hudOrder : new ArrayList<>();
@@ -379,6 +460,10 @@ public class PowerHudConfig {
                 return false;
             }
             ConfigData data = profile.config;
+            // Restore accessibility preset
+            colorPresetIndex = data.colorPresetIndex;
+            setColorPreset(colorPresetIndex);
+            // Restore other settings
             hudEnabled = data.hudEnabled;
             showFps = data.showFps;
             showCoords = data.showCoords;

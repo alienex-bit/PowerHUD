@@ -64,13 +64,16 @@ public class PowerHudConfigScreen extends Screen {
     
     private static Category currentCategory = Category.DISPLAY;
     private final List<TooltipArea> tooltips = new ArrayList<>();
-    private final String modVer;
+    // Removed final modVer field; replaced with dynamic getter
     private String profileInput = null;
     private TextFieldWidget profileNameField;
 
     public PowerHudConfigScreen() {
         super(Text.literal("PowerHUD Config"));
-        this.modVer = FabricLoader.getInstance()
+    }
+
+    private String getModVersion() {
+        return FabricLoader.getInstance()
             .getModContainer("powerhud")
             .map(c -> c.getMetadata().getVersion().getFriendlyString())
             .orElse("Unknown");
@@ -316,6 +319,20 @@ public class PowerHudConfigScreen extends Screen {
                 break;
                 
             case THEME:
+                // ...existing toggles...
+                                // Move color preset selector to the bottom for alignment
+                                addToggle(
+                                    rX, startY + (leading * 5),
+                                    "Accessibility",
+                                    PowerHudConfig.COLOR_PRESET_NAMES[PowerHudConfig.colorPresetIndex],
+                                    "Switch accessibility preset (color blindness, high contrast, dyslexia)",
+                                    b -> {
+                                        int next = (PowerHudConfig.colorPresetIndex + 1) % PowerHudConfig.COLOR_PRESET_NAMES.length;
+                                        PowerHudConfig.setColorPreset(next);
+                                        clearAndInit();
+                                    },
+                                    btnW, btnH
+                                );
                 addToggle(
                     rX, startY,
                     "HUD Font",
@@ -343,26 +360,31 @@ public class PowerHudConfigScreen extends Screen {
                     btnW, btnH
                 );
 
+                // Data Color toggle: only enabled if custom colors
                 addToggle(
                     rX, startY + (leading * 2),
                     "Data Color",
-                    PowerHudConfig.COLOR_NAMES[PowerHudConfig.themeIndex],
-                    "HUD data colour",
+                    PowerHudConfig.COLOR_NAMES[PowerHudConfig.themeIndex] + (PowerHudConfig.isCustomColors() ? "" : " (Preset)"),
+                    PowerHudConfig.isCustomColors() ? "HUD data colour" : "Disabled by preset",
                     b -> {
-                        PowerHudConfig.themeIndex = (PowerHudConfig.themeIndex + 1) % PowerHudConfig.COLORS.length;
-                        clearAndInit();
+                        if (PowerHudConfig.isCustomColors()) {
+                            PowerHudConfig.themeIndex = (PowerHudConfig.themeIndex + 1) % PowerHudConfig.COLORS.length;
+                            clearAndInit();
+                        }
                     },
                     btnW, btnH
                 );
-                
+                // Title Color toggle: only enabled if custom colors
                 addToggle(
                     rX, startY + (leading * 3),
                     "Title Color",
-                    PowerHudConfig.COLOR_NAMES[PowerHudConfig.titleColorIndex],
-                    "HUD title colour",
+                    PowerHudConfig.COLOR_NAMES[PowerHudConfig.titleColorIndex] + (PowerHudConfig.isCustomColors() ? "" : " (Preset)"),
+                    PowerHudConfig.isCustomColors() ? "HUD title colour" : "Disabled by preset",
                     b -> {
-                        PowerHudConfig.titleColorIndex = (PowerHudConfig.titleColorIndex + 1) % PowerHudConfig.COLORS.length;
-                        clearAndInit();
+                        if (PowerHudConfig.isCustomColors()) {
+                            PowerHudConfig.titleColorIndex = (PowerHudConfig.titleColorIndex + 1) % PowerHudConfig.COLORS.length;
+                            clearAndInit();
+                        }
                     },
                     btnW, btnH
                 );
@@ -520,7 +542,7 @@ public class PowerHudConfigScreen extends Screen {
 
             dc.drawTextWithShadow(
                 this.textRenderer,
-                modVer,
+                getModVersion(),
                 rX + p,
                 startY + p + ABOUT_TEXT_SPACING,
                 COLOR_TEXT_GRAY

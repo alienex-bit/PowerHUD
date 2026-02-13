@@ -1,13 +1,17 @@
 ﻿﻿PowerHUD Version Information
 ============================
-Version: 1.12.0
+Version: 1.13.0
 Build Date: 2026-02-13
 Minecraft: 1.21.4
 Fabric Loader: 0.16.9
 Fabric API: 0.110.0+1.21.4
 
-PowerHUD v1.11.5
+PowerHUD v1.13.0
 Released: 2026-02-13
+
+Changelog:
+- Accessibility color preset (color blindness/high contrast/dyslexia) is now stored per profile
+- Preset 'Default' renamed to 'Off'; manual color selection only available when 'Off' is selected
 - Profile manager now displays the currently loaded profile at the top
 - Profile list has compact Load ("L") and Delete ("x") buttons for each profile
 - Delete confirmation dialog prevents accidental profile deletion

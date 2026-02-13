@@ -60,6 +60,7 @@ public class HudRenderer implements HudRenderCallback {
 
     @Override
     public void onHudRender(DrawContext dc, RenderTickCounter tc) {
+        // ...existing code...
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null || client.player == null) return;
         
@@ -101,12 +102,13 @@ public class HudRenderer implements HudRenderCallback {
             return;
         }
         
+
         renderMainHud(dc, client);
     }
 
     public void renderMainHud(DrawContext dc, MinecraftClient client) {
         TextRenderer ren = client.textRenderer;
-        int theme = PowerHudConfig.COLORS[PowerHudConfig.themeIndex];
+        int theme = PowerHudConfig.getPresetDataColor();
         float s = PowerHudConfig.hudScaleVert / SCALE_DIVISOR;
         
         dc.getMatrices().push();
@@ -114,7 +116,7 @@ public class HudRenderer implements HudRenderCallback {
         int sw = (int)(client.getWindow().getScaledWidth() / s);
 
         long now = System.currentTimeMillis();
-        int tColor = PowerHudConfig.COLORS[PowerHudConfig.titleColorIndex];
+        int tColor = PowerHudConfig.getPresetTitleColor();
         int hAdj = (PowerHudConfig.fontIndex > 0) ? 1 : 0;
 
         // Render each element at its absolute position
@@ -269,8 +271,15 @@ public class HudRenderer implements HudRenderCallback {
             && !line.value.isEmpty());
 
         if (shouldRender) {
-            // Draw background box if enabled
-            if (PowerHudConfig.boxStyle != PowerHudConfig.BoxStyle.OFF) {
+            // Enforce dark background for accessibility presets
+            if (PowerHudConfig.forceDarkBackground()) {
+                int boxColor = COLOR_BACKGROUND_DARK;
+                int boxX = renderX - 2;
+                int boxY = y + hAdj - 1;
+                int boxW = totalW + 4;
+                int boxH = 10; // Approximate line height
+                dc.fill(boxX, boxY, boxX + boxW, boxY + boxH, boxColor);
+            } else if (PowerHudConfig.boxStyle != PowerHudConfig.BoxStyle.OFF) {
                 int alpha = switch (PowerHudConfig.boxStyle) {
                     case FAINT -> 0x20;
                     case LIGHT -> 0x40;
@@ -312,7 +321,8 @@ public class HudRenderer implements HudRenderCallback {
                 curX += dotW;
             }
 
-            drawStyledText(dc, ren, line.value, curX, y + hAdj, line.valColor, s, false, now);
+            // Bold data if accessibility preset is active
+            drawStyledText(dc, ren, line.value, curX, y + hAdj, line.valColor, s, PowerHudConfig.isPresetBoldData(), now);
 
             if (iconW > 0) {
                 dc.drawItem(HudData.toolStack, curX + valW + HUD_ICON_OFFSET, y + hAdj - HUD_ICON_OFFSET);

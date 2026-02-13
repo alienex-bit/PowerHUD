@@ -28,26 +28,14 @@ A modern, highly customizable HUD overlay mod for Minecraft Fabric 1.21.4
 - **Vitality Display** - Health and status information
 
 ### 🎨 Customization
-- **9 Custom Fonts** - JetBrains Mono, Fira Code, Roboto Mono, Cascadia Code, Source Code Pro, Comic Mono, Monofur, Ubuntu Mono, Inter Mono
-- **20+ Color Themes** - Comprehensive color palette for text and data
-- **WYSIWYG HUD Workbench** - Visual drag-and-drop editor with live preview
-- **Zone-Based Snapping** - Elements auto-snap to left, center, or right zones
-- **Spacer Elements** - Add flexible spacing between HUD elements
-- **Adjustable Scaling** - Resize HUD elements to your preference (works at any scale)
-- **Bold Title Toggle** - Enable/disable bold formatting for element titles
-- **HUD Profiles** – Save, load, rename, delete, export, and import HUD layouts. Instantly switch between different HUD configurations and layouts. Profiles are validated, can be renamed, and are easily managed with visual feedback and tooltips.
 
 ## 🎮 Default Keybindings
-
 | Key | Action |
 |-----|--------|
 | \O\ | Open configuration screen |
 | \H\ | Toggle HUD visibility |
 | \R\ | Reset FPS statistics |
 | \Z\ | Cycle debug screen modes |
-
-*All keybindings are customizable in-game*
-
 ## 📦 Installation
 
 ### Requirements
