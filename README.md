@@ -169,7 +169,13 @@ Found a bug or need help?
 
 ## 📊 Version History
 
-- **v1.11.4** - Latest release (February 12, 2026)
+- **v1.11.5** - Latest release (February 13, 2026)
+  - **IMPROVED: Profile manager** now displays the currently loaded profile at the top
+  - **IMPROVED: Profile list** has compact Load ("L") and Delete ("x") buttons for each profile
+  - **NEW: Delete confirmation dialog** prevents accidental profile deletion
+  - **UI fixes** for button sizing and layout
+
+- **v1.11.4** - Previous release (February 12, 2026)
   - **NEW: HUD Profiles** - Save/load/delete HUD layouts for quick switching between custom setups. Instantly switch between different HUD configurations and layouts. Profiles are stored and can be restored at any time, making it easy to experiment or revert to a favorite layout.
   - **IMPROVED: Oxygen overlay UI** - Lighter opacity, always fixed width, improved text contrast
   - **IMPROVED: HUD Workbench** - Drag boxes align exactly with HUD bounds at any scale

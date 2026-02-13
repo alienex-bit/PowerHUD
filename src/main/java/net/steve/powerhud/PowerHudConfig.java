@@ -12,6 +12,8 @@ import java.util.List;
 import static net.steve.powerhud.HudConstants.*;
 
 public class PowerHudConfig {
+        // Tracks the currently loaded profile name (null = default config)
+        public static String currentProfile = null;
     // Enums
     public enum FpsMode { MINIMAL, NORMAL, FULL }
     public enum BoxStyle { OFF, FAINT, LIGHT, SUBTLE, MEDIUM, STRONG, DARK, SOLID }
@@ -131,6 +133,7 @@ public class PowerHudConfig {
     // Reset to default layout
     public static void resetToVanilla() {
         hudOrder.clear();
+        currentProfile = null;
         // Left side elements (x=10)
         hudOrder.add(LayoutEntry.freeForm("XYZ", 10, 10));
         hudOrder.add(LayoutEntry.freeForm("FACING", 10, 25));
@@ -390,6 +393,7 @@ public class PowerHudConfig {
                 Arrays.asList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>())
             );
             save();
+            currentProfile = sanitized;
             System.out.println("Profile loaded: " + sanitized);
             return true;
         } catch (Exception e) {

@@ -1,13 +1,15 @@
 ﻿﻿PowerHUD Version Information
 ============================
-Version: 1.11.4
-Build Date: 2026-02-12
+Version: 1.11.5
+Build Date: 2026-02-13
 Minecraft: 1.21.4
 Fabric Loader: 0.16.9
 Fabric API: 0.110.0+1.21.4
 
-PowerHUD v1.11.4
-Released: 2026-02-12
-- Profiles feature improved and documented
-- Version bump for documentation and changelog
+PowerHUD v1.11.5
+Released: 2026-02-13
+- Profile manager now displays the currently loaded profile at the top
+- Profile list has compact Load ("L") and Delete ("x") buttons for each profile
+- Delete confirmation dialog prevents accidental profile deletion
+- UI fixes for button sizing and layout
 - All previous features retained

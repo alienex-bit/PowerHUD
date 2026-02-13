@@ -275,6 +275,11 @@ public class PowerHudConfigScreen extends Screen {
                 break;
                 
             case PROFILES:
+                // Show current profile at the top
+                String loadedProfile = net.steve.powerhud.PowerHudConfig.currentProfile;
+                String loadedProfileLabel = (loadedProfile == null || loadedProfile.isEmpty()) ? "Current: Default (Unsaved)" : ("Current: " + loadedProfile);
+                addLabel(profileRX, profileY, loadedProfileLabel, btnW, btnH);
+                profileY += leading;
                 addLabel(profileRX, profileY, "HUD Profiles", btnW, btnH);
                 profileY += leading;
                 if (profileNameField == null) {
@@ -294,23 +299,25 @@ public class PowerHudConfigScreen extends Screen {
                 profileY += leading;
                 List<String> profiles = PowerHudConfig.listProfiles();
                 for (String profileName : profiles) {
-                    addLabel(profileRX, profileY, profileName, btnW, btnH);
-                    addButton(profileRX + btnW + gap, profileY, "Load", hW, btnH, b -> {
+                    int labelW = btnW - 2 * BUTTON_WIDTH_COMPACT - 2 * gap;
+                    addLabel(profileRX, profileY, profileName, labelW, btnH);
+                    int btnLoadX = profileRX + labelW + gap;
+                    int btnDelX = btnLoadX + BUTTON_WIDTH_COMPACT + gap;
+                    addButton(btnLoadX, profileY, "L", BUTTON_WIDTH_COMPACT, btnH, b -> {
                         PowerHudConfig.loadProfile(profileName);
                         clearAndInit();
                     });
-                    addButton(profileRX + btnW + gap + hW + gap, profileY, "Delete", hW, btnH, b -> {
-                        PowerHudConfig.deleteProfile(profileName);
-                        clearAndInit();
+                    addButton(btnDelX, profileY, "x", BUTTON_WIDTH_COMPACT, btnH, b -> {
+                        this.client.setScreen(new ConfirmDeleteProfileScreen(this, profileName));
                     });
                     profileY += leading;
                 }
                 break;
-
             case ABOUT:
                 // Move rendering logic to render() method
                 break;
         }
+
 
         // Done button at bottom
         addDrawableChild(ButtonWidget.builder(
