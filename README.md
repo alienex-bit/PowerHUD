@@ -90,23 +90,33 @@ Press \O\ in-game to open the configuration screen.
 ## 🖼️ Screenshots
 
 ### HUD in Action
-![HUD Overview](screenshots/hud-overview.png)
+<a href="screenshots/hud-overview.png" target="_blank">
+  <img src="screenshots/hud-overview.png" alt="HUD Overview" width="300"/>
+</a>
 *Main HUD display showing FPS, coordinates, and other elements*
 
 ### Configuration Screen
-![Config Screen](screenshots/config-screen.png)
+<a href="screenshots/config-screen.png" target="_blank">
+  <img src="screenshots/config-screen.png" alt="Config Screen" width="300"/>
+</a>
 *PowerHUD configuration interface*
 
 ### HUD Workbench
-![HUD Workbench](screenshots/hud-workbench.png)
+<a href="screenshots/hud-workbench.png" target="_blank">
+  <img src="screenshots/hud-workbench.png" alt="HUD Workbench" width="300"/>
+</a>
 *Visual drag-and-drop editor for arranging HUD elements*
 
 ### Oxygen Overlay
-![Oxygen Overlay](screenshots/oxygen-overlay.png)
+<a href="screenshots/oxygen-overlay.png" target="_blank">
+  <img src="screenshots/oxygen-overlay.png" alt="Oxygen Overlay" width="300"/>
+</a>
 *Centered oxygen bar with color-coded states*
 
 ### Custom Fonts & Colors
-![Fonts and Colors](screenshots/fonts-colors.png)
+<a href="screenshots/fonts-colors.png" target="_blank">
+  <img src="screenshots/fonts-colors.png" alt="Fonts and Colors" width="300"/>
+</a>
 *Examples of different fonts and color themes*
 
 *More screenshots coming soon!*
