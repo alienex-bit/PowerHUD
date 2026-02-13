@@ -170,7 +170,15 @@ Found a bug or need help?
 - [Open an issue](https://github.com/alienex-bit/PowerHUD/issues/new)
 - Provide Minecraft version, Fabric Loader version, and steps to reproduce
 
+
 ## 📊 Version History
+
+- **v1.13.0** – (February 13, 2026)
+  - **NEW: Accessibility color presets are now stored per profile**
+  - **CHANGED: 'Default' color preset renamed to 'Off'**
+  - **Manual color selection is only available when 'Off' is selected**
+  - **All accessibility presets enforce dark background and bold data**
+  - **README and version.txt updated to reflect these changes**
 
 - **v1.12.0** – (February 13, 2026)
   - **NEW: Complete profile management overhaul**
