@@ -138,10 +138,8 @@ gradlew.bat runClient
 
 ## 📋 Roadmap
 
-See [FUTURE_IDEAS.md](FUTURE_IDEAS.md) for under consideration including:
-- HUD Profiles (save/load configurations)
+HUD stuff under consideration include:
 - Animated transitions and effects
-- Historical data visualization (FPS graphs)
 - Light level display
 - Durability warnings
 - Session statistics
