@@ -9,11 +9,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static net.steve.powerhud.HudConstants.*;
-
 public class PowerHudConfig {
-        // Tracks the currently loaded profile name (null = default config)
-        public static String currentProfile = null;
+    // ...existing fields and methods...
+    public static boolean renameProfile(String oldName, String newName) {
+        String oldSanitized = sanitizeProfileName(oldName);
+        String newSanitized = sanitizeProfileName(newName);
+        if (oldSanitized.isEmpty() || newSanitized.isEmpty()) return false;
+        Path oldFile = PROFILES_DIR.resolve(oldSanitized + ".json");
+        Path newFile = PROFILES_DIR.resolve(newSanitized + ".json");
+        if (!oldFile.toFile().exists() || newFile.toFile().exists()) return false;
+        return oldFile.toFile().renameTo(newFile.toFile());
+    }
+    // Tracks the currently loaded profile name (null = default config)
+    public static String currentProfile = null;
+    // Tracks the last loaded profile for auto-loading
+    public static String lastProfile = null;
     // Enums
     public enum FpsMode { MINIMAL, NORMAL, FULL }
     public enum BoxStyle { OFF, FAINT, LIGHT, SUBTLE, MEDIUM, STRONG, DARK, SOLID }
@@ -178,7 +188,7 @@ public class PowerHudConfig {
     private static final Path CONFIG_FILE = FabricLoader.getInstance()
         .getConfigDir()
         .resolve("powerhud.json");
-    private static final Path PROFILES_DIR = FabricLoader.getInstance()
+    public static final Path PROFILES_DIR = FabricLoader.getInstance()
         .getConfigDir()
         .resolve("powerhud")
         .resolve("profiles");
@@ -186,6 +196,8 @@ public class PowerHudConfig {
     
     private static class ConfigData {
         // Boolean fields
+            // Last loaded profile
+            String lastProfile = PowerHudConfig.lastProfile;
         boolean hudEnabled = PowerHudConfig.hudEnabled;
         boolean showFps = PowerHudConfig.showFps;
         boolean showCoords = PowerHudConfig.showCoords;
@@ -231,14 +243,12 @@ public class PowerHudConfig {
             resetToVanilla();
             return;
         }
-        
         try (Reader reader = new FileReader(CONFIG_FILE.toFile())) {
             ConfigData data = GSON.fromJson(reader, ConfigData.class);
             if (data == null) {
                 resetToVanilla();
                 return;
             }
-            
             // Apply boolean settings
             hudEnabled = data.hudEnabled;
             showFps = data.showFps;
@@ -263,7 +273,7 @@ public class PowerHudConfig {
             fpsMode = data.fpsMode;
             boxStyle = data.boxStyle;
             inventoryMode = data.inventoryMode;
-            
+
             // Apply integer settings
             hudScaleVert = data.hudScaleVert;
             themeIndex = data.themeIndex;
@@ -280,7 +290,18 @@ public class PowerHudConfig {
             layoutSlots = data.layoutSlots != null ? data.layoutSlots : new ArrayList<>(
                 Arrays.asList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>())
             );
-            
+
+            // Apply lastProfile
+            lastProfile = data.lastProfile;
+
+            // If lastProfile is set and exists, auto-load it
+            if (lastProfile != null && !lastProfile.isEmpty()) {
+                List<String> profiles = listProfiles();
+                if (profiles.contains(lastProfile)) {
+                    loadProfile(lastProfile);
+                }
+            }
+
             if (hudOrder.isEmpty()) {
                 resetToVanilla();
             }
@@ -394,6 +415,8 @@ public class PowerHudConfig {
             );
             save();
             currentProfile = sanitized;
+            lastProfile = sanitized;
+            save(); // persist lastProfile
             System.out.println("Profile loaded: " + sanitized);
             return true;
         } catch (Exception e) {
@@ -419,7 +442,7 @@ public class PowerHudConfig {
             return false;
         }
     }
-    private static String sanitizeProfileName(String name) {
+    public static String sanitizeProfileName(String name) {
         if (name == null || name.trim().isEmpty()) {
             return "";
         }

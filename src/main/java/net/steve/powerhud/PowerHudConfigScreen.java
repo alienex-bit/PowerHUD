@@ -1,3 +1,4 @@
+// ...existing code...
 package net.steve.powerhud;
 
 import net.fabricmc.loader.api.FabricLoader;
@@ -15,6 +16,48 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import static net.steve.powerhud.HudConstants.*;
 
 public class PowerHudConfigScreen extends Screen {
+        @Override
+        public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+            if (currentCategory == Category.PROFILES && profileNameField != null && profileNameField.isFocused()) {
+                // Enter or Ctrl+S to save
+                if (keyCode == 257 || (keyCode == 83 && (modifiers & 2) != 0)) { // 257: Enter, 83: S, 2: Ctrl
+                    if (profileNameField.getText() != null && !profileNameField.getText().trim().isEmpty()) {
+                        profileInput = profileNameField.getText();
+                        String trimmed = profileInput.trim();
+                        String sanitized = net.steve.powerhud.PowerHudConfig.sanitizeProfileName(trimmed);
+                        if (!sanitized.isEmpty()) {
+                            List<String> profiles = net.steve.powerhud.PowerHudConfig.listProfiles();
+                            boolean exists = profiles.contains(sanitized);
+                            Runnable doSave = () -> {
+                                boolean success = net.steve.powerhud.PowerHudConfig.saveProfile(trimmed);
+                                if (success) showFeedback("Profile saved: " + trimmed, 0xFF22CC22);
+                                else showFeedback("Failed to save profile", 0xFFCC2222);
+                                clearAndInit();
+                            };
+                            if (exists) {
+                                this.client.setScreen(new ConfirmOverwriteProfileScreen(this, trimmed, doSave));
+                            } else {
+                                doSave.run();
+                            }
+                        } else {
+                            showFeedback("Invalid profile name", 0xFFCC2222);
+                        }
+                    }
+                    return true;
+                }
+                // Esc to cancel
+                if (keyCode == 256) { // 256: Esc
+                    profileNameField.setFocused(false);
+                    return true;
+                }
+            }
+            return super.keyPressed(keyCode, scanCode, modifiers);
+        }
+    // Visual feedback message and timer
+    private String feedbackMessage = null;
+    private int feedbackTicks = 0;
+    private static final int FEEDBACK_DURATION = 60; // 3 seconds at 20 TPS
+
     private enum Category { 
         DISPLAY, ELEMENTS, THEME, FPS_TWEAK, INV_TWEAK, ABOUT, PROFILES
     }
@@ -32,11 +75,27 @@ public class PowerHudConfigScreen extends Screen {
             .map(c -> c.getMetadata().getVersion().getFriendlyString())
             .orElse("Unknown");
     }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (feedbackTicks > 0) {
+            feedbackTicks--;
+            if (feedbackTicks == 0) feedbackMessage = null;
+        }
+    }
+
+    private void showFeedback(String msg, int color) {
+        this.feedbackMessage = msg;
+        this.feedbackTicks = FEEDBACK_DURATION;
+    }
     
     @Override
     public void renderBackground(DrawContext c, int mx, int my, float d) {}
     
+
     private record TooltipArea(int x, int y, int w, int h, String text) {}
+
     
     @Override
     public void close() {
@@ -46,6 +105,8 @@ public class PowerHudConfigScreen extends Screen {
     
     @Override
     protected void init() {
+        feedbackMessage = null;
+        feedbackTicks = 0;
         tooltips.clear();
         
         int mid = this.width / 2;
@@ -86,7 +147,6 @@ public class PowerHudConfigScreen extends Screen {
                     },
                     btnW, btnH
                 );
-                
                 addStepper(
                     rX, startY + leading,
                     "HUD Scale",
@@ -100,12 +160,129 @@ public class PowerHudConfigScreen extends Screen {
                     btnW, btnH, 10
                 );
                 break;
+            case PROFILES:
+                // Show current profile at the top
+                String loadedProfile = net.steve.powerhud.PowerHudConfig.currentProfile;
+                String loadedProfileLabel = (loadedProfile == null || loadedProfile.isEmpty()) ? "Current: Default (Unsaved)" : ("Current: " + loadedProfile);
+                addLabel(profileRX, profileY, loadedProfileLabel, btnW, btnH);
+                profileY += leading;
+                // Export/Import buttons with tooltips
+                tooltips.add(new TooltipArea(profileRX, profileY, btnW/2 - gap, btnH, "Export current profile to your home folder"));
+                addButton(profileRX, profileY, "Export", btnW/2 - gap, btnH, b -> {
+                    if (PowerHudConfig.currentProfile != null && !PowerHudConfig.currentProfile.isEmpty()) {
+                        String name = PowerHudConfig.currentProfile;
+                        java.nio.file.Path exportPath = java.nio.file.Paths.get(System.getProperty("user.home"), name + ".json");
+                        boolean ok = ProfileExportImport.exportProfile(name, exportPath);
+                        showFeedback(ok ? "Exported to " + exportPath : "Export failed", ok ? 0xFF22CC22 : 0xFFCC2222);
+                    }
+                });
+                tooltips.add(new TooltipArea(profileRX + btnW/2 + gap, profileY, btnW/2 - gap, btnH, "Import a profile from 'import_profile.json' in your home folder"));
+                addButton(profileRX + btnW/2 + gap, profileY, "Import", btnW/2 - gap, btnH, b -> {
+                    java.nio.file.Path importPath = java.nio.file.Paths.get(System.getProperty("user.home"), "import_profile.json");
+                    boolean ok = ProfileExportImport.importProfile(importPath);
+                    String importedName = importPath.getFileName().toString().replaceFirst("\\.json$", "");
+                    if (ok) {
+                        showFeedback("Imported profile: " + importedName, 0xFF22CC22);
+                    } else {
+                        showFeedback("Import failed", 0xFFCC2222);
+                    }
+                    clearAndInit();
+                });
+                profileY += leading;
+                if (profileNameField == null) {
+                    profileNameField = new TextFieldWidget(this.textRenderer, profileRX, profileY, btnW, btnH, Text.literal("Profile Name"));
+                    profileNameField.setText("");
+                    profileNameField.setFocused(true);
+                }
+                profileNameField.setText(this.profileInput != null ? this.profileInput : "");
+                addDrawableChild(profileNameField);
+                tooltips.add(new TooltipArea(profileRX, profileY, btnW, btnH, "Enter a new profile name here (leave blank to save to current profile). Only letters, numbers, -, _ allowed. Max 32 chars."));
+                profileY += leading;
+
+                tooltips.add(new TooltipArea(profileRX, profileY, btnW, btnH, "Save to current profile, or create/overwrite a new profile if a name is entered above"));
+                ButtonWidget saveBtn = ButtonWidget.builder(
+                    Text.literal("Save Current"),
+                    b -> {
+                        this.profileInput = profileNameField.getText();
+                        String trimmed = this.profileInput != null ? this.profileInput.trim() : "";
+                        if (trimmed.isEmpty()) {
+                            // Save to current profile
+                            String current = net.steve.powerhud.PowerHudConfig.currentProfile;
+                            if (current == null || current.isEmpty()) {
+                                showFeedback("No profile selected to save.", 0xFFCC2222);
+                                return;
+                            }
+                            boolean success = net.steve.powerhud.PowerHudConfig.saveProfile(current);
+                            if (success) showFeedback("Profile saved: " + current, 0xFF22CC22);
+                            else showFeedback("Failed to save profile", 0xFFCC2222);
+                            clearAndInit();
+                        } else {
+                            // Validate name: only allow a-z, A-Z, 0-9, -, _ and max 32 chars
+                            String sanitized = net.steve.powerhud.PowerHudConfig.sanitizeProfileName(trimmed);
+                            if (sanitized.isEmpty() || !trimmed.equals(sanitized)) {
+                                showFeedback("Invalid profile name. Only letters, numbers, -, _ allowed. Max 32 chars.", 0xFFCC2222);
+                                return;
+                            }
+                            List<String> profiles = net.steve.powerhud.PowerHudConfig.listProfiles();
+                            boolean exists = profiles.contains(sanitized);
+                            Runnable doSave = () -> {
+                                boolean success = net.steve.powerhud.PowerHudConfig.saveProfile(trimmed);
+                                if (success) showFeedback("Profile saved: " + trimmed, 0xFF22CC22);
+                                else showFeedback("Failed to save profile", 0xFFCC2222);
+                                clearAndInit();
+                            };
+                            if (exists) {
+                                this.client.setScreen(new ConfirmOverwriteProfileScreen(this, trimmed, doSave));
+                            } else {
+                                doSave.run();
+                            }
+                        }
+                    }
+                ).dimensions(profileRX, profileY, btnW, btnH).build();
+                saveBtn.active = true;
+                addDrawableChild(saveBtn);
+                profileY += leading;
+
+                List<String> profiles = net.steve.powerhud.PowerHudConfig.listProfiles();
+                for (String profileName : profiles) {
+                    int labelW = btnW - 3 * BUTTON_WIDTH_COMPACT - 3 * gap;
+                    boolean isCurrent = profileName.equals(net.steve.powerhud.PowerHudConfig.currentProfile);
+                    if (isCurrent) {
+                        addDrawableChild(ButtonWidget.builder(
+                            Text.literal("[" + profileName + "]").styled(s -> s.withColor(0xFF22CC22).withBold(true)),
+                            b -> {}
+                        ).dimensions(profileRX, profileY, labelW, btnH).build()).active = false;
+                        tooltips.add(new TooltipArea(profileRX, profileY, labelW, btnH, "This is the currently loaded profile"));
+                    } else {
+                        addLabel(profileRX, profileY, profileName, labelW, btnH);
+                        tooltips.add(new TooltipArea(profileRX, profileY, labelW, btnH, "Profile: " + profileName));
+                    }
+                    int btnLoadX = profileRX + labelW + gap;
+                    int btnRenameX = btnLoadX + BUTTON_WIDTH_COMPACT + gap;
+                    int btnDelX = btnRenameX + BUTTON_WIDTH_COMPACT + gap;
+                    tooltips.add(new TooltipArea(btnLoadX, profileY, BUTTON_WIDTH_COMPACT, btnH, "Load this profile"));
+                    addButton(btnLoadX, profileY, "L", BUTTON_WIDTH_COMPACT, btnH, b -> {
+                        net.steve.powerhud.PowerHudConfig.loadProfile(profileName);
+                        clearAndInit();
+                    });
+                    tooltips.add(new TooltipArea(btnRenameX, profileY, BUTTON_WIDTH_COMPACT, btnH, "Rename this profile"));
+                    addButton(btnRenameX, profileY, "R", BUTTON_WIDTH_COMPACT, btnH, b -> {
+                        this.client.setScreen(new RenameProfileScreen(this, profileName, this::clearAndInit));
+                    });
+                    tooltips.add(new TooltipArea(btnDelX, profileY, BUTTON_WIDTH_COMPACT, btnH, "Delete this profile"));
+                    addButton(btnDelX, profileY, "x", BUTTON_WIDTH_COMPACT, btnH, b -> {
+                        this.client.setScreen(new ConfirmDeleteProfileScreen(this, profileName));
+                    });
+                    profileY += leading;
+                }
+                break;
                 
             case ELEMENTS:
                 addBool(rX, startY, "FPS", PowerHudConfig.showFps, 
                     v -> PowerHudConfig.showFps = v, hW, btnH, "Toggle FPS");
                 addBool(rX + hW + gap, startY, "XYZ", PowerHudConfig.showCoords, 
                     v -> PowerHudConfig.showCoords = v, hW, btnH, "Toggle Co-ordinates");
+                tooltips.add(new TooltipArea(profileRX, profileY, btnW, btnH, "Enter a new profile name here"));
                 
                 addBool(rX, startY + leading, "Facing", PowerHudConfig.showDirection, 
                     v -> PowerHudConfig.showDirection = v, hW, btnH, "Toggle Direction");
@@ -274,45 +451,7 @@ public class PowerHudConfigScreen extends Screen {
                 );
                 break;
                 
-            case PROFILES:
-                // Show current profile at the top
-                String loadedProfile = net.steve.powerhud.PowerHudConfig.currentProfile;
-                String loadedProfileLabel = (loadedProfile == null || loadedProfile.isEmpty()) ? "Current: Default (Unsaved)" : ("Current: " + loadedProfile);
-                addLabel(profileRX, profileY, loadedProfileLabel, btnW, btnH);
-                profileY += leading;
-                addLabel(profileRX, profileY, "HUD Profiles", btnW, btnH);
-                profileY += leading;
-                if (profileNameField == null) {
-                    profileNameField = new TextFieldWidget(this.textRenderer, profileRX, profileY, btnW, btnH, Text.literal("Profile Name"));
-                    profileNameField.setText("");
-                }
-                profileNameField.setText(this.profileInput != null ? this.profileInput : "");
-                addDrawableChild(profileNameField);
-                profileY += leading;
-                addButton(profileRX, profileY, "Save Current", btnW, btnH, b -> {
-                    this.profileInput = profileNameField.getText();
-                    if (this.profileInput != null && !this.profileInput.isEmpty()) {
-                        PowerHudConfig.saveProfile(this.profileInput);
-                        clearAndInit();
-                    }
-                });
-                profileY += leading;
-                List<String> profiles = PowerHudConfig.listProfiles();
-                for (String profileName : profiles) {
-                    int labelW = btnW - 2 * BUTTON_WIDTH_COMPACT - 2 * gap;
-                    addLabel(profileRX, profileY, profileName, labelW, btnH);
-                    int btnLoadX = profileRX + labelW + gap;
-                    int btnDelX = btnLoadX + BUTTON_WIDTH_COMPACT + gap;
-                    addButton(btnLoadX, profileY, "L", BUTTON_WIDTH_COMPACT, btnH, b -> {
-                        PowerHudConfig.loadProfile(profileName);
-                        clearAndInit();
-                    });
-                    addButton(btnDelX, profileY, "x", BUTTON_WIDTH_COMPACT, btnH, b -> {
-                        this.client.setScreen(new ConfirmDeleteProfileScreen(this, profileName));
-                    });
-                    profileY += leading;
-                }
-                break;
+                // ...existing code...
             case ABOUT:
                 // Move rendering logic to render() method
                 break;
@@ -348,6 +487,17 @@ public class PowerHudConfigScreen extends Screen {
                     my - 10
                 );
             }
+        }
+
+        // Render feedback message (centered box)
+        if (feedbackMessage != null && feedbackTicks > 0) {
+            int boxW = 260;
+            int boxH = 40;
+            int x = (this.width - boxW) / 2;
+            int y = (this.height - boxH) / 2;
+            int color = 0xCC222222;
+            dc.fill(x, y, x + boxW, y + boxH, color);
+            dc.drawCenteredTextWithShadow(this.textRenderer, feedbackMessage, this.width / 2, y + 14, 0xFFFFFFAA);
         }
 
         // Render ABOUT section content
@@ -509,14 +659,6 @@ public class PowerHudConfigScreen extends Screen {
         ).dimensions(x, y, w, h).build()).active = false;
     }
 
-    private void addTextInput(int x, int y, String label, String def, int w, int h, Consumer<String> onSubmit) {
-        addDrawableChild(ButtonWidget.builder(
-            Text.literal(label + ": " + def),
-            b -> {}
-        ).dimensions(x, y, w, h).build()).active = false;
-
-        // TODO: Implement actual text input field and logic
-    }
 
     private void addButton(int x, int y, String label, int w, int h, Consumer<ButtonWidget> action) {
         addDrawableChild(ButtonWidget.builder(

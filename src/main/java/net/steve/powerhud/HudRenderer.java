@@ -320,7 +320,7 @@ public class HudRenderer implements HudRenderCallback {
         }
     }
 
-    private int resolveX(int x, int width, int sw) {
+    public static int resolveX(int x, int width, int sw) {
         if (x == HUD_X_CENTER_SENTINEL) {
             return (sw - width) / 2;
         }

@@ -35,7 +35,7 @@ A modern, highly customizable HUD overlay mod for Minecraft Fabric 1.21.4
 - **Spacer Elements** - Add flexible spacing between HUD elements
 - **Adjustable Scaling** - Resize HUD elements to your preference (works at any scale)
 - **Bold Title Toggle** - Enable/disable bold formatting for element titles
-- **HUD Profiles** - Save/load/delete HUD layouts for quick switching between custom setups. Instantly switch between different HUD configurations and layouts. Profiles are stored and can be restored at any time, making it easy to experiment or revert to a favorite layout.
+- **HUD Profiles** – Save, load, rename, delete, export, and import HUD layouts. Instantly switch between different HUD configurations and layouts. Profiles are validated, can be renamed, and are easily managed with visual feedback and tooltips.
 
 ## 🎮 Default Keybindings
 
@@ -80,7 +80,12 @@ Press \O\ in-game to open the configuration screen.
 - **FPS Tweaks** - Configure display mode (Minimal/Normal/Full), thresholds, and animated dot indicator
 - **Inventory Tweaks** - Choose display style (Grid/Percent/Fraction)
 - **Oxygen Settings** - Adjust centered overlay position with color-coded bar and toggle vanilla air bubbles
-- **HUD Profiles** - Save/load/delete HUD layouts for quick switching between custom setups
+- **HUD Profiles** – Save/load/rename/delete/export/import HUD layouts. Save button is always enabled; enter a name to create/overwrite, leave blank to save to current. Profile names are validated for allowed characters and length.
+
+### Export/Import Profiles
+
+- **Export Profile:** Click Export to save the current profile as a .json file in your home folder.
+- **Import Profile:** Place a .json file named import_profile.json in your home folder and click Import to add it to your profiles.
 
 ## 🖼️ Screenshots
 
@@ -113,7 +118,7 @@ Press \O\ in-game to open the configuration screen.
 - Git
 
 ### Build Steps
-\ash
+```bash
 # Clone the repository
 git clone https://github.com/alienex-bit/PowerHUD.git
 cd PowerHUD
@@ -123,15 +128,15 @@ gradlew.bat build
 
 # Build the mod (Linux/Mac)
 ./gradlew build
-\
+```
 
 The compiled JAR will be located in \build/libs\
 
 ### Development Environment
-\ash
+```bash
 # Run Minecraft client with mod loaded
 gradlew.bat runClient
-\
+```
 
 ## 📋 Roadmap
 
@@ -169,7 +174,20 @@ Found a bug or need help?
 
 ## 📊 Version History
 
-- **v1.11.5** - Latest release (February 13, 2026)
+- **v1.12.0** – (February 13, 2026)
+  - **NEW: Complete profile management overhaul**
+    - Save, rename, delete, export, and import profiles
+    - Save button always enabled: blank = save to current, text = new/overwrite
+    - Profile name validation (letters, numbers, -, _, max 32 chars)
+    - Visual feedback for all actions
+    - Tooltips for all profile actions
+    - Keyboard shortcuts for save/cancel
+    - Auto-focus on profile input
+    - Improved workflow for profile save/restore
+    - Export: saves profile as .json to your home folder
+    - Import: loads import_profile.json from your home folder
+
+- **v1.11.5** - Previous release (February 13, 2026)
   - **IMPROVED: Profile manager** now displays the currently loaded profile at the top
   - **IMPROVED: Profile list** has compact Load ("L") and Delete ("x") buttons for each profile
   - **NEW: Delete confirmation dialog** prevents accidental profile deletion

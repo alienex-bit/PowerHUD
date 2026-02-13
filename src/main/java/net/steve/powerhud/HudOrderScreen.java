@@ -184,58 +184,80 @@ public class HudOrderScreen extends Screen {
         int bottomY = this.height - PALETTE_HEIGHT - 35;
 
         // Action buttons - centered and smaller
-        int btnWidth = 80;
-        int btnSpacing = 5;
-        int totalWidth = (btnWidth * 4) + (btnSpacing * 3);
-        int startX = (this.width - totalWidth) / 2;
+                int btnWidth = 80;
+                int btnSpacing = 5;
+                int totalWidth = (btnWidth * 5) + (btnSpacing * 4);
+                int startX = (this.width - totalWidth) / 2;
 
-        addDrawableChild(ButtonWidget.builder(Text.literal("Reset"), b -> {
-            PowerHudConfig.resetToVanilla();
-            tempOrder.clear();
-            for (PowerHudConfig.LayoutEntry entry : PowerHudConfig.hudOrder) {
-                tempOrder.add(PowerHudConfig.LayoutEntry.freeForm(entry.id, entry.x, entry.y));
-            }
-        }).dimensions(startX, bottomY, btnWidth, 18)
-          .tooltip(Tooltip.of(Text.literal("Restore default layout")))
-          .build());
-        
-        addDrawableChild(ButtonWidget.builder(Text.literal("Clear All"), b -> {
-            tempOrder.clear();
-            clearChildren();
-            init(); // Refresh the screen to update the display
-        }).dimensions(startX + btnWidth + btnSpacing, bottomY, btnWidth, 18)
-          .tooltip(Tooltip.of(Text.literal("Remove all elements")))
-          .build());
+                // 1. Reset
+                addDrawableChild(ButtonWidget.builder(Text.literal("Reset"), b -> {
+                        PowerHudConfig.resetToVanilla();
+                        tempOrder.clear();
+                        for (PowerHudConfig.LayoutEntry entry : PowerHudConfig.hudOrder) {
+                                tempOrder.add(PowerHudConfig.LayoutEntry.freeForm(entry.id, entry.x, entry.y));
+                        }
+                }).dimensions(startX, bottomY, btnWidth, 18)
+                    .tooltip(Tooltip.of(Text.literal("Restore default layout")))
+                    .build());
 
-        addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> {
-            PowerHudConfig.hudOrder.clear();
-            PowerHudConfig.hudOrder.addAll(tempOrder);
-            PowerHudConfig.save();
-            isWorkbenchActive = false;
-            this.client.setScreen(parent);
-        }).dimensions(startX + (btnWidth + btnSpacing) * 2, bottomY, btnWidth, 18)
-          .tooltip(Tooltip.of(Text.literal("Save and exit")))
-          .build());
+                // 2. Save Changes
+                addDrawableChild(ButtonWidget.builder(Text.literal("Save Changes"), b -> {
+                        PowerHudConfig.hudOrder.clear();
+                        PowerHudConfig.hudOrder.addAll(tempOrder);
+                        boolean success = false;
+                        if (PowerHudConfig.currentProfile != null && !PowerHudConfig.currentProfile.isEmpty()) {
+                                success = PowerHudConfig.saveProfile(PowerHudConfig.currentProfile);
+                        } else {
+                                PowerHudConfig.save();
+                        }
+                        MinecraftClient client = MinecraftClient.getInstance();
+                        if (client != null && client.player != null) {
+                                client.player.sendMessage(Text.literal(success ? "Profile layout saved!" : "Layout saved to config."), true);
+                        }
+                }).dimensions(startX + (btnWidth + btnSpacing) * 1, bottomY, btnWidth, 18)
+                    .tooltip(Tooltip.of(Text.literal("Save layout to current profile")))
+                    .build());
 
-        addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), b -> {
-            isWorkbenchActive = false;
-            this.client.setScreen(parent);
-        }).dimensions(startX + (btnWidth + btnSpacing) * 3, bottomY, btnWidth, 18)
-          .tooltip(Tooltip.of(Text.literal("Exit without saving")))
-          .build());
+                // 3. Clear All
+                addDrawableChild(ButtonWidget.builder(Text.literal("Clear All"), b -> {
+                        tempOrder.clear();
+                        clearChildren();
+                        init(); // Refresh the screen to update the display
+                }).dimensions(startX + (btnWidth + btnSpacing) * 2, bottomY, btnWidth, 18)
+                    .tooltip(Tooltip.of(Text.literal("Remove all elements")))
+                    .build());
+
+                // 4. Done
+                addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> {
+                        PowerHudConfig.hudOrder.clear();
+                        PowerHudConfig.hudOrder.addAll(tempOrder);
+                        PowerHudConfig.save();
+                        isWorkbenchActive = false;
+                        this.client.setScreen(parent);
+                }).dimensions(startX + (btnWidth + btnSpacing) * 3, bottomY, btnWidth, 18)
+                    .tooltip(Tooltip.of(Text.literal("Save and exit")))
+                    .build());
+
+                // 5. Cancel
+                addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), b -> {
+                        isWorkbenchActive = false;
+                        this.client.setScreen(parent);
+                }).dimensions(startX + (btnWidth + btnSpacing) * 4, bottomY, btnWidth, 18)
+                    .tooltip(Tooltip.of(Text.literal("Exit without saving")))
+                    .build());
     }
 
 
     private ElementBounds getElementBounds(PowerHudConfig.LayoutEntry entry, TextRenderer ren, int sw) {
         if (entry.id.equals(TEXT_SPACE)) {
-            return new ElementBounds(resolveX(entry.x, 60, sw), entry.y, 60, PowerHudConfig.lineSpacing);
+            return new ElementBounds(HudRenderer.resolveX(entry.x, 60, sw), entry.y, 60, PowerHudConfig.lineSpacing);
         }
 
         boolean gridInv = entry.id.equals("INV") && PowerHudConfig.inventoryMode == PowerHudConfig.InventoryMode.GRID;
         if (gridInv) {
             int titleW = HudRenderer.getHudTextWidth(ren, "Inventory", PowerHudConfig.boldTitles);
             int width = Math.max(titleW, INV_GRID_WIDTH);
-            int x = resolveX(entry.x, width, sw);
+            int x = HudRenderer.resolveX(entry.x, width, sw);
             return new ElementBounds(x, entry.y, width, INV_HEIGHT_TOTAL);
         }
 
@@ -250,7 +272,7 @@ public class HudOrderScreen extends Screen {
         int dotW = (entry.id.equals("FPS") && PowerHudConfig.showFpsDot) ? HUD_DOT_WIDTH : 0;
         int iconW = (entry.id.equals("TOOL") && !HudData.toolStack.isEmpty()) ? HUD_ICON_WIDTH : 0;
         int width = titleW + valW + dotW + iconW;
-        int x = resolveX(entry.x, width, sw);
+        int x = HudRenderer.resolveX(entry.x, width, sw);
         return new ElementBounds(x, entry.y, width, ren.fontHeight);
     }
 
@@ -283,24 +305,9 @@ public class HudOrderScreen extends Screen {
             case "TOOL" -> HudData.toolStr;
             case "INV" -> HudData.invStr;
             case "BLOCK_STATS" -> HudData.blockStatsStr;
-            case "GAMEMODE" -> HudData.gamemodeStr;
             default -> "";
         };
     }
-
-    private int resolveX(int x, int width, int sw) {
-        if (x == HUD_X_CENTER_SENTINEL) {
-            return (sw - width) / 2;
-        }
-        if (x == HUD_X_RIGHT_SENTINEL) {
-            return sw - width - HUD_X_RIGHT_MARGIN;
-        }
-        if (x < 0) {
-            return sw + x;
-        }
-        return x;
-    }
-
     private int getElementHeight(String id) {
         if (id.equals("SPACE")) {
             return PowerHudConfig.lineSpacing;
