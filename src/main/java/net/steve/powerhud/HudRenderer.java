@@ -189,7 +189,7 @@ public class HudRenderer implements HudRenderCallback {
             int extraPad = 8; // Increase as needed for more space
             int boxRows = isCreative ? 1 : 4;
             int boxH = boxRows * INV_ROW_HEIGHT + INV_GRID_OFFSET + 2 + extraPad;
-            if (PowerHudConfig.boxStyle != PowerHudConfig.BoxStyle.OFF) {
+            if (PowerHudConfig.boxStyle != null && PowerHudConfig.boxStyle != PowerHudConfig.BoxStyle.OFF) {
                 int alpha = switch (PowerHudConfig.boxStyle) {
                     case FAINT -> 0x20;
                     case LIGHT -> 0x40;
@@ -279,7 +279,7 @@ public class HudRenderer implements HudRenderCallback {
                 int boxW = totalW + 4;
                 int boxH = 10; // Approximate line height
                 dc.fill(boxX, boxY, boxX + boxW, boxY + boxH, boxColor);
-            } else if (PowerHudConfig.boxStyle != PowerHudConfig.BoxStyle.OFF) {
+            } else if (PowerHudConfig.boxStyle != null && PowerHudConfig.boxStyle != PowerHudConfig.BoxStyle.OFF) {
                 int alpha = switch (PowerHudConfig.boxStyle) {
                     case FAINT -> 0x20;
                     case LIGHT -> 0x40;
