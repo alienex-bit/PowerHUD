@@ -348,11 +348,11 @@ public class PowerHudConfigScreen extends Screen {
                 addToggle(
                     rX, startY + leading,
                     "Background",
-                    PowerHudConfig.boxStyle.toString(),
+                    (PowerHudConfig.boxStyle != null ? PowerHudConfig.boxStyle : PowerHudConfig.BoxStyle.OFF).toString(),
                     "HUD element background style",
                     b -> {
                         PowerHudConfig.boxStyle = PowerHudConfig.BoxStyle.values()[
-                            (PowerHudConfig.boxStyle.ordinal() + 1) % PowerHudConfig.BoxStyle.values().length
+                            ((PowerHudConfig.boxStyle != null ? PowerHudConfig.boxStyle : PowerHudConfig.BoxStyle.OFF).ordinal() + 1) % PowerHudConfig.BoxStyle.values().length
                         ];
                         PowerHudConfig.save(); // Ensure config is saved immediately after change
                         clearAndInit();
