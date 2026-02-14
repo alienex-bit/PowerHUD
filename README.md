@@ -3,7 +3,7 @@
 
 A modern, highly customizable HUD overlay mod for Minecraft Fabric 1.21.4
 
-> **⚠️ WARNING:** PowerHUD is not fully working in Modrinth/Modrinth App yet. It runs in Gradle and standard Fabric environments, but may crash or not function as expected in Modrinth. Please test carefully and report issues.
+ 
 
 ## ✨ Features
 
