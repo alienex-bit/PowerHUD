@@ -1,0 +1,11 @@
+{
+    "required": true,
+    "package": "net.steve.powerhud.mixin",
+    "compatibilityLevel": "JAVA_25",
+    "client": [
+        "BlockCounterMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

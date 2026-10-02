@@ -1,0 +1,21 @@
+PowerHUD Version Information
+============================
+Version: 1.14.0
+Build Date: 2026-10-02
+Minecraft: 26.3
+Fabric Loader: 0.19.5
+Fabric API: 0.161.0+26.3
+Java: 25
+
+PowerHUD v1.14.0
+Released: 2026-10-02
+
+Changelog:
+- Upgraded to Minecraft 26.3 ("Wilderness Bound")
+- Updated toolchain to Java 25 LTS and Gradle 9.8.0
+- Migrated all UI and overlay rendering to Minecraft 26.3 GuiGraphicsExtractor architecture
+- Migrated mixins and screen navigation to Minecraft 26.3 official Mojang mappings
+- Switched oxygen bar hiding to Fabric API HudElementRegistry (replacing DrawContextMixin)
+- Updated input handling to KeyEvent and InputConstants for Minecraft 26.3
+- Changed default config menu keybinding from 'O' to 'U' to avoid conflict with Minecraft 26.3 Friends List
+- Retained full backward-compatible configuration, profile management, and custom font support

@@ -1,0 +1,7 @@
+{
+  "key.category.powerhud.powerhud": "PowerHUD",
+  "key.powerhud.open_config": "Open Config Menu",
+  "key.powerhud.toggle_hud": "Toggle HUD Visibility",
+  "key.powerhud.reset_fps": "Reset FPS Statistics",
+  "key.powerhud.cycle_debug": "Cycle Debug Screen"
+}

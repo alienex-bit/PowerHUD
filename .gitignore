@@ -1,0 +1,21 @@
+﻿# Gradle
+.gradle/
+build/
+out/
+bin/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+run/
+logs/
+*.log
+
+# Backups and Archives (exclude from Git)
+Backups/
+Archive/
+Test/
+
+.DS_Store
+Thumbs.db
