@@ -51,7 +51,7 @@ A modern, highly customizable HUD overlay mod for Minecraft **26.3** (Fabric)
 1. Install Fabric Loader for Minecraft 26.3
 2. Download Fabric API and place in your `.minecraft/mods` folder
 3. Download the latest PowerHUD release from [Releases](https://github.com/alienex-bit/PowerHUD/releases)
-4. Place `powerhud-1.14.0.jar` in your `.minecraft/mods` folder
+4. Place `powerhud-1.14.1.jar` in your `.minecraft/mods` folder
 5. Launch Minecraft with the Fabric profile
 
 ## ⚙️ Configuration
@@ -175,6 +175,9 @@ Found a bug or need help?
 
 
 ## 📊 Version History
+
+- **v1.14.1** – (October 2, 2026)
+  - **FIXED: About screen QR code rendering as a white box on Minecraft 26.3**
 
 - **v1.14.0** – (October 2, 2026)
   - **UPGRADED: Minecraft 26.3** ("Wilderness Bound")

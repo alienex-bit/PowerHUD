@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.client.input.KeyEvent;
@@ -597,15 +598,18 @@ public class PowerHudConfigScreen extends Screen {
 
             Identifier qr = Identifier.fromNamespaceAndPath("powerhud", "textures/coffee_qr.png");
             dc.blit(
+                RenderPipelines.GUI_TEXTURED,
                 qr,
                 rX + (boxW / 2) - (ABOUT_QR_SIZE / 2),
                 startY + boxH - ABOUT_QR_OFFSET,
-                ABOUT_QR_SIZE,
-                ABOUT_QR_SIZE,
                 0.0f,
                 0.0f,
-                1.0f,
-                1.0f
+                ABOUT_QR_SIZE,
+                ABOUT_QR_SIZE,
+                500,
+                500,
+                500,
+                500
             );
         }
     }

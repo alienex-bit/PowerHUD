@@ -1,14 +1,17 @@
 PowerHUD Version Information
 ============================
-Version: 1.14.0
+Version: 1.14.1
 Build Date: 2026-10-02
 Minecraft: 26.3
 Fabric Loader: 0.19.5
 Fabric API: 0.161.0+26.3
 Java: 25
 
-PowerHUD v1.14.0
+PowerHUD v1.14.1
 Released: 2026-10-02
+
+Changelog (1.14.1):
+- Fixed About screen QR code rendering as a white box
 
 Changelog:
 - Upgraded to Minecraft 26.3 ("Wilderness Bound")
