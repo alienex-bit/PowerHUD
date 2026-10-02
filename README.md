@@ -1,7 +1,7 @@
 
 # PowerHUD
 
-A modern, highly customizable HUD overlay mod for Minecraft Fabric 26.3
+A modern, highly customizable HUD overlay mod for Minecraft **26.3** (Fabric)
 
  
 
@@ -60,8 +60,9 @@ Press `U` in-game to open the configuration screen.
 
 ### Available Options
 - **Toggle Elements** - Show/hide individual HUD components
-- **Font Selection** - Choose from 9 custom monospace fonts
-- **Color Customization** - Select from 20+ colors for text and data
+- **Font Selection** - Choose from 10 custom fonts (Vanilla, JetBrains, Roboto, Fira, Cascadia, Source, Comic, Monofur, Ubuntu, Inter)
+- **Color Customization** - Select from 20 colors for text and data (only available when no accessibility preset is active)
+- **Accessibility Color Presets** - Choose from built-in presets: Deuteranopia, Protanopia, Tritanopia, High Contrast, and Dyslexia/General — each stored per profile and enforces dark background + bold data
 - **Bold Titles** - Toggle bold formatting for element titles
 - **HUD Workbench** - Visual drag-and-drop editor with:
   - Live HUD preview
@@ -116,7 +117,7 @@ Press `U` in-game to open the configuration screen.
 ## 🛠️ Building from Source
 
 ### Prerequisites
-- Java 21 or higher
+- Java **25** or higher
 - Git
 
 ### Build Steps
@@ -174,6 +175,16 @@ Found a bug or need help?
 
 
 ## 📊 Version History
+
+- **v1.14.0** – (October 2, 2026)
+  - **UPGRADED: Minecraft 26.3** ("Wilderness Bound")
+  - **UPGRADED: Java 25 LTS and Gradle 9.8.0 toolchain**
+  - **MIGRATED: All UI and overlay rendering to Minecraft 26.3 `GuiGraphicsExtractor` architecture**
+  - **MIGRATED: Mixins and screen navigation to Minecraft 26.3 official Mojang mappings**
+  - **CHANGED: Oxygen bar hiding now uses Fabric API `HudElementRegistry`** (replacing `DrawContextMixin`)
+  - **UPDATED: Input handling to `KeyEvent` and `InputConstants`** for Minecraft 26.3
+  - **CHANGED: Default config menu keybinding from `O` to `U`** to avoid conflict with Minecraft 26.3 Friends List
+  - Full backward-compatible configuration, profile management, and custom font support retained
 
 - **v1.13.0** – (February 13, 2026)
   - **NEW: Accessibility color presets are now stored per profile**
